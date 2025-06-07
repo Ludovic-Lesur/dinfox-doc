@@ -1,0 +1,240 @@
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+\renewcommand\arraystretch{1.5}
+
+\definecolor{VeryLightGreen}{RGB}{220,255,220}
+
+\renewcommand{\tablename}{\textsc{Table}}
+\newcommand{\tab}{\textcolor{White}{aaaa}}
+\newcommand{\tdref}{TD--DFX}
+\newcommand{\tdrev}{td1.0}
+\newcommand{\tddate}{2025/06/07}
+
+% NOP.
+\newcommand{\nop}{}
+
+% Space between end of paragraph and figure.
+\newcommand{\pfs}{\vspace{4mm}}
+
+% Document link.
+\newcommand{\reflink}[2]{\hyperref[#2]{#1 \textbf{\ref{#2}}}}
+
+% Graphic.
+\newcommand{\graph}[2]{\includegraphics[width=#1]{../images/#2}}
+
+% Caption.
+\newcommand{\capt}[1]{\caption[#1]{\textit{#1.}}}
+
+% Bullet list.
+\newcommand{\bulletlist}[1]{
+    \begin{itemize}[label=$\blacktriangleright$, itemsep=0mm, leftmargin=5mm]
+        #1
+    \end{itemize}
+}
+
+% Tabular line.
+\newcommand{\tl}{\hline\rule[-2ex]{0pt}{5.5ex}}
+
+% Tabular partial line.
+\newcommand{\pl}[1]{\cline{#1}\rule[-2ex]{0pt}{5.5ex}}
+
+% Register table header.
+\newcommand{\rth}{
+    \tl\cellcolor{LightGray}\centering\textbf{\texttt{REG\_ADDR}} & \cellcolor{LightGray}\centering \textbf{Register name} &
+    \cellcolor{LightGray}\centering \textbf{Size} &
+    \cellcolor{LightGray}\centering \textbf{Access} &
+    \cellcolor{LightGray}\centering \textbf{Format} &
+    \cellcolor{LightGray}\centering \textbf{Description} \tabularnewline
+}
+
+% Register table line.
+\newcommand{\rtl}[6]{
+    \tl\centering\cellcolor{Lavender}\textbf{#1} &
+    \centering \texttt{#2} &
+    \centering #3 &
+    \centering #4 &
+    \centering\hyperref[#5]{Table \textbf{\ref{#5}}} &
+    \centering #6 \tabularnewline
+}
+
+% Register table.
+\newcommand{\rtt}[2]{
+    \begin{table}[!h]
+        \centering
+        \begin{tabular}{|p{20mm}|p{40mm}|p{6mm}|p{10mm}|p{14mm}|p{57mm}|}
+            \rth
+            #1
+            \hline
+        \end{tabular}
+        \capt{#2}
+    \end{table}
+}
+
+% Register map most significant bits header.
+\newcommand{\rmmsb}{
+    \hline
+    \cellcolor{LightGray}\centering \textbf{31} &
+    \cellcolor{LightGray}\centering \textbf{30} &
+    \cellcolor{LightGray}\centering \textbf{29} &
+    \cellcolor{LightGray}\centering \textbf{28} &
+    \cellcolor{LightGray}\centering \textbf{27} &
+    \cellcolor{LightGray}\centering \textbf{26} &
+    \cellcolor{LightGray}\centering \textbf{25} &
+    \cellcolor{LightGray}\centering \textbf{24} &
+    \cellcolor{LightGray}\centering \textbf{23} &
+    \cellcolor{LightGray}\centering \textbf{22} &
+    \cellcolor{LightGray}\centering \textbf{21} &
+    \cellcolor{LightGray}\centering \textbf{20} &
+    \cellcolor{LightGray}\centering \textbf{19} &
+    \cellcolor{LightGray}\centering \textbf{18} &
+    \cellcolor{LightGray}\centering \textbf{17} &
+    \cellcolor{LightGray}\centering \textbf{16} \tabularnewline
+}
+
+% Register map less significant bits header.
+\newcommand{\rmlsb}{
+    \hline
+    \cellcolor{LightGray}\centering \textbf{15} &
+    \cellcolor{LightGray}\centering \textbf{14} &
+    \cellcolor{LightGray}\centering \textbf{13} &
+    \cellcolor{LightGray}\centering \textbf{12} &
+    \cellcolor{LightGray}\centering \textbf{11} &
+    \cellcolor{LightGray}\centering \textbf{10} &
+    \cellcolor{LightGray}\centering \textbf{9} &
+    \cellcolor{LightGray}\centering \textbf{8} &
+    \cellcolor{LightGray}\centering \textbf{7} &
+    \cellcolor{LightGray}\centering \textbf{6} &
+    \cellcolor{LightGray}\centering \textbf{5} &
+    \cellcolor{LightGray}\centering \textbf{4} &
+    \cellcolor{LightGray}\centering \textbf{3} &
+    \cellcolor{LightGray}\centering \textbf{2} &
+    \cellcolor{LightGray}\centering \textbf{1} &
+    \cellcolor{LightGray}\centering \textbf{0} \tabularnewline
+}
+
+% Data representation format header.
+\newcommand{\rmlsbyte}{
+    \hline
+    \cellcolor{LightGray}\centering \textbf{7} &
+    \cellcolor{LightGray}\centering \textbf{6} &
+    \cellcolor{LightGray}\centering \textbf{5} &
+    \cellcolor{LightGray}\centering \textbf{4} &
+    \cellcolor{LightGray}\centering \textbf{3} &
+    \cellcolor{LightGray}\centering \textbf{2} &
+    \cellcolor{LightGray}\centering \textbf{1} &
+    \cellcolor{LightGray}\centering \textbf{0} \tabularnewline
+}
+
+% Register map field.
+\newcommand{\rmf}[3]{
+    \multicolumn{#1}{#2}{\texttt{#3}}
+}
+
+% Register map unused.
+\newcommand{\rmu}[2]{
+    \multicolumn{#1}{#2}{\cellcolor{VeryLightGreen}}
+}
+
+% Register map table
+\newcommand{\rmt}[2]{
+    \begin{table}[!h]
+        \centering
+        \begin{tabular}{|*{16}{m{6.6mm}}|}
+            \rmmsb
+            \hline #1 \tabularnewline
+            \rmlsb
+            \hline #2 \tabularnewline
+            \hline
+        \end{tabular}
+    \end{table}
+}
+
+% Register format header.
+\newcommand{\rfh}{
+    \hline\cellcolor{LightGray}\centering\textbf{Bits} &
+    \cellcolor{LightGray}\centering \textbf{Size} &
+    \cellcolor{LightGray}\centering \textbf{Field} &
+    \cellcolor{LightGray}\centering \textbf{Reset value} &
+    \cellcolor{LightGray}\centering \textbf{Description} &
+    \cellcolor{LightGray}\centering \textbf{Format} \tabularnewline
+}
+
+% Register format field.
+\newcommand{\rff}[6]{
+    \hline\cellcolor{PeachPuff}\centering\textbf{#1} &
+    \centering #2 &
+    \centering\texttt{#3} &
+    \centering #4 &
+    \centering #5 &
+    \centering #6 \tabularnewline
+}
+
+% Register format unused.
+\newcommand{\rfu}[3]{
+    \hline\cellcolor{VeryLightGreen}\centering\textbf{#1} &
+    \centering #2 &
+    \centering $ - $ &
+    \centering #3 &
+    \centering \textcolor{Green}{Unused}. &
+    \centering $ - $ \tabularnewline
+}
+
+% Register format table.
+\newcommand{\rft}[3]{
+    \begin{table}[!h]
+        \centering
+        \begin{tabular}{|p{11mm}|p{6mm}|p{35mm}|p{18mm}|p{29mm}|p{48mm}|}
+            \rfh
+            #1
+            \hline
+        \end{tabular}
+        \capt{#2}
+        \label{#3}
+    \end{table}
+}
+
+% Electrical specification table.
+\newcommand{\est}[3]{
+    \begin{table}[!h]
+        \centering
+        \begin{tabular}{|p{40mm}|p{30mm}|p{10mm}p{10mm}p{10mm}|p{10mm}|}
+            \tl\cellcolor{LightGray}\centering\textbf{Parameter} & \cellcolor{LightGray}\centering \textbf{Condition} & \cellcolor{LightGray}\centering \textbf{Min} & \cellcolor{LightGray}\centering \textbf{Typ} & \cellcolor{LightGray}\centering \textbf{Max} & \cellcolor{LightGray}\centering \textbf{Unit} \tabularnewline
+            #1
+            \hline
+        \end{tabular}
+        \capt{#2}
+        \label{#3}
+    \end{table}
+}
+
+% Downlink payload format header.
+\newcommand{\dlbytes}{
+    \hline
+    \cellcolor{LightGray}\centering \textbf{B0} &
+    \cellcolor{LightGray}\centering \textbf{B1} &
+    \cellcolor{LightGray}\centering \textbf{B2} &
+    \cellcolor{LightGray}\centering \textbf{B3} &
+    \cellcolor{LightGray}\centering \textbf{B4} &
+    \cellcolor{LightGray}\centering \textbf{B5} &
+    \cellcolor{LightGray}\centering \textbf{B6} &
+    \cellcolor{LightGray}\centering \textbf{B7} \tabularnewline
+}
+
+% Reference manual version.
+\newcommand{\rmv}[1]{\fontsize{7}{0}{\texttt{td#1}}}
+
+% Reference manual version link.
+\newcommand{\rmvl}[1]{\href{https://github.com/Ludovic-Lesur/dinfox-doc/releases/tag/td#1}{\fontsize{7}{0}{\texttt{td#1}}}}
+
+% Software version link.
+\newcommand{\svl}[2]{\href{https://github.com/Ludovic-Lesur/#1/releases/tag/sw#2}{\fontsize{7}{0}{\texttt{sw#2}}}}
+
+% Software version range.
+\newcommand{\svr}[3]{\svl{#1}{#2}\fontsize{6}{0}{$\ \blacktriangleright\ $}\svl{#1}{#3}}
+
+% Software version minimum.
+\newcommand{\svm}[2]{\fontsize{5}{0}{$\ge\ $}\svl{#1}{#2}}
+
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}

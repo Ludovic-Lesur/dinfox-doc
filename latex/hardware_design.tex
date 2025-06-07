@@ -1,0 +1,132 @@
+\section{Hardware design}
+
+\subsection{Power supply}
+
+DINFox nodes have been designed to achieve a very low power consumption, in order to be compatible with backup power systems. As shown in the below power tree, DINFox nodes are usually powered by two parallel sources:
+
+\bulletlist{
+    \item the power input ($ V_{SRC} $, $ V_{IN} $, $ V_{COM} $, etc...), generally a high voltage source but not always present.
+    \item the bus voltage rail $ V_{RS} $, typically provided by a \textbf{BPSM} or a \textbf{BCM} module connected to an energy storage element, in order to keep a backup voltage for all nodes when the power input is not available.
+}
+
+\begin{figure}[h]
+    \centering
+    \graph{120mm}{dinfox-power-tree.drawio.png}
+    \vspace*{\baselineskip}
+    \capt{Simplified power tree of DINFox nodes}
+\end{figure}
+
+Powering a node by its power input has two advantages:
+
+\bulletlist{
+    \item The node does not drain current from the backup source $ V_{RS} $ when the high voltage is available.
+    \item Avoid pseudo-powering issues of the MCU via the ADC pins, as there are some direct voltage dividers on the power input and output for monitoring.
+}
+
+Since most of the nodes monitor the power input, they can determine if they are currently powered by the power input or by the backup rail $ V_{RS} $. Therefore, they can adjust their behavior accordingly to reduce the power consumption (ADC conversions period, enable LED blinking, etc...).
+
+\subsubsection{LDO regulator}
+
+In order to optimize the power consumption, a very low quiescent current LDO regulator has to be chosen to power the MCU and the RS485 transceiver, which is always in reception on slaves nodes. The regulator must also withstand the high voltage input when available (up to $ 28\,V $). The TPS709 regulator from Texas Instruments is an ideal reference and has been selected for all the boards (\textbf{TPS70930DBVx}, $ 3.0\,V $ output in SOT23-5 package). \pfs
+
+\est {
+    \tl\centering Input voltage & \centering $ - $ & \centering 2.7 & & \centering 30.0 & \centering $ V $ \tabularnewline
+    \tl\centering Output current & \centering $ - $ & & & \centering 150 & \centering $ mA $ \tabularnewline
+    \tl\centering Quiescent current & \centering $ I_{OUT}=0\,mA $ & & \centering 1.4 & \centering 2.25 & \centering $ \mu A $ \tabularnewline
+    \pl{2-6} & \centering $ I_{OUT}=150\,mA $ & & \centering 350 & & \centering $ \mu A $ \tabularnewline
+    \tl\centering Dropout voltage & \centering $ I_{OUT}=50\,mA $ & & \centering 295 & \centering 650 & \centering $ mV$ \tabularnewline
+    \pl{2-6} & \centering $ I_{OUT}=150\,mA $ & & \centering 960 & \centering 1400 & \centering $ mV $ \tabularnewline
+}
+{TPS70930DBVx LDO regulator characteristics}
+{TPS70930DBVx}
+
+\textbf{\underline{Warning:}} whereas the regulator supports $ 30\,V $, the enable input of the TPS709 is limited to $ 6.5\,V $. As a consequence, when this regulator is not controlled and always on (for the MCU and the RS485 transceiver) the enable input must not be tied to the input but left floating: there is an internal pull-up that will ensure the regulator is on, with the right logic voltage whatever the input voltage.
+
+\newpage
+
+\subsubsection{Schottky diodes}
+
+Schottky diodes perform the OR operation between the power input and $ V_{RS} $, by naturally selecting the highest voltage as source. Caution must be taken on the \textbf{reverse current}: indeed, when one of the voltage inputs is not available (especially the power input), an extra leakage current is drained by the second diode which is in reverse state. Some Schottky diodes have an excellent low forward voltage (main characteristic of these diodes) but a very poor reverse current (tens of $ \mu A $) which drastically increase the node power consumption in idle mode. Also, the reverse voltage has to be higher than the power input maximum voltage ($ 28\,V $).
+\medskip \\
+Taken these parameters into account, the \textbf{PMEG6010ELR} reference from Nexperia was chosen for all the boards. \pfs
+
+\est {
+    \tl\centering Average forward current & \centering $ - $ & & & \centering 1.0 & \centering $ A $ \tabularnewline
+    \tl\centering Reverse voltage & \centering $ - $ & & & \centering 60 & \centering $ V $ \tabularnewline
+    \tl\centering Forward voltage & \centering $ I_{F}=1\,A $ & & \centering 605 & \centering 660 & \centering $ mV $ \tabularnewline
+    \tl\centering Reverse current & \centering $ V_{R}=60\,V $ & & \centering 90 & \centering 300 & \centering $ nA $ \tabularnewline
+}
+{PMEG6010ELR Schottky diode characteristics}
+{pmeg6010elr}
+
+\subsubsection{MCU}
+
+Most of slave nodes are based on the \textbf{STM32L0x1} MCU. Thanks to the LPUART peripheral clocked on the external $ 32.768\,kHz $ quartz, the MCU is able to stay in \textbf{stop mode} while waiting for commands with address match feature. Since there are only static measures to do, the core is only woken-up when a command is sent to the node address (and periodically to clear the internal watchdog). \pfs
+
+\est {
+    \tl\centering Supply voltage & \centering $ - $ & \centering 1.65 & & \centering 3.6 & \centering $ V $ \tabularnewline
+    \tl\centering MCU current in stop mode & \centering $ - $ & & \centering 1.5 & & \centering $ \mu A $ \tabularnewline
+}
+{STM32L0x1 characteristics}
+{stm32l0x1}
+
+The \textbf{MPMCM} is an exception regarding power consumption. This node performs mains voltage measurements which require continuous AC data acquisition and processing. It is based on a \textbf{STM32G4x1} MCU which is more powerful than a \textbf{STM32L0x1}. The LPUART peripheral has the same wake-up features, but the MCU is not put in stop mode when measuring (only when the mains voltage is not present). \\
+As a consequence, this node continuously drains a high current. But power consumption is not a constraint in this case, because the node is indirectly powered by the mains voltage instead of the backup voltage $ V_{RS} $.
+
+\newpage
+
+\subsubsection{RS485 transceiver}
+
+There are lots of RS485 transceiver references, but only few of them are low power. In particular, the \textbf{MAX3471} of Maxims Integrated is one of the best part regarding power consumption: it can be powered by a $ 3.0\,V $ supply and drains less than $ 2\,\mu A $ in reception mode, whereas other transceivers drain hundreds of $ \mu A $, even few $ mA $. \pfs
+
+\est {
+    \tl\centering Supply voltage & \centering $ - $ & \centering 2.5 & & \centering 5.5 & \centering $ V $ \tabularnewline
+    \tl\centering RX current & \centering $ V_{CC}<3.6\,V $ & & \centering 1.6 & \centering 2.0 & \centering $ \mu A $ \tabularnewline
+    \tl\centering TX current & \centering $ V_{CC}<3.6\,V $ & & \centering 50 & \centering 60 & \centering $ \mu A $ \tabularnewline
+}
+{MAX3471 characteristics}
+{max3471}
+
+\subsubsection{VRS voltage}
+
+Due to the drop-out voltages of the LDO regulator ($ 1400\,mV $ maximum) and the Schottky diodes ($ 660\,mV $ maximum), the minimum supply voltage of the DINFox node is $ V_{RS}=5\,V $. \pfs
+
+\est {
+    \tl\centering $ V_{RS} $ & \centering $ - $ & \centering 5.0 & & \centering 28 & \centering $ V $ \tabularnewline
+}
+{$ V_{RS} $ characteristics}
+{vrs}
+
+\textbf{\underline{Note:}} if powering the nodes with their power inputs is not required, it is possible to remove the diodes, select a lower input voltage LDO regulator which will have a lower drop-out (such as TPS782, TPS7A05, etc...) and thus reduce $ V_{RS} $ to 3.6V. But in this case, \textbf{caution must be taken with the voltage dividers which are directly connected to the MCU}: either disconnect them or ensure that $ V_{RS} $ is always present.
+
+\subsubsection{Power consumption}
+
+Regarding the overall power consumption of a DINFox system, the most critical parameter is the RX current, because slave nodes are continuously listening on the RS485 bus to wait for commands. Thanks to the previous components selection, a slave node in continuous reception drains less than $ 5\,\mu A $ (except for \textbf{MPMCM} node). \pfs
+
+\est {
+    \tl\centering Diode reverse current & \centering $ - $ & & \centering 90 & & \centering $ nA $ \tabularnewline
+    \tl\centering LDO quiescent current & \centering $ - $ & & \centering 1.4 & & \centering $ \mu A $ \tabularnewline
+    \tl\centering MCU current in stop mode & \centering $ - $ & & \centering 1.5 & & \centering $ \mu A $ \tabularnewline
+    \tl\centering RS485 transceiver RX current & \centering $ - $ & & \centering 1.6 & & \centering $ \mu A $ \tabularnewline
+    \tl\centering Node overall RX current & \centering $ - $ & & \centering 4.5 & & \centering $ \mu A $ \tabularnewline
+}
+{DINFox slave node overall RX current}
+{dinfox-node-current}
+\newpage
+
+\subsection{Mechanical specification}
+
+As shown in the next drawing, DINFox nodes have been designed to be mounted on a \textbf{DIN rail}. They have a common height of $ 70\,mm $ and a variable width expressed in the standard $ U $ unit (multiple of $ 17.6\,mm $).
+\medskip \\
+The RS485 interface described in \reflink{section}{dinfox-rs485} is exposed on a male connector on the left edge and a female connector on the right edge, so that the modules can be \textbf{stacked side by side} without any wire.
+
+\vspace{10mm}
+
+\begin{figure}[h]
+    \centering
+    \graph{120mm}{dinfox-mechanical.drawio.png}
+    \vspace*{10mm}
+    \capt{Mechanical dimensions of a DINFox node}
+\end{figure}
+
+\newpage

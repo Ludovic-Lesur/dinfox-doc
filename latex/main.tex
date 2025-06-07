@@ -1,0 +1,110 @@
+\documentclass[a4paper,twoside,8pt]{extarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[svgnames, dvipsnames, table]{xcolor}
+\usepackage{amsmath}
+\usepackage{pifont}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{pstricks}
+\usepackage{pstricks-add}
+\usepackage{pst-plot}
+\usepackage{fancyhdr}
+\usepackage{etoolbox}
+\usepackage{wasysym}
+\usepackage{enumitem}
+\usepackage{fancybox}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multicol, float}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,breaklinks=false]{hyperref}
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.8cm, right=1.8cm]{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+
+\input{macro}
+\input{format}
+
+\begin{document}
+
+    \doublespacing
+
+    \begin{center}
+
+        \vspace*{30mm}
+
+        {\fontsize{20}{20}\selectfont\textbf{\textsf{DINFOX SYSTEM}}} \\
+        \bigskip
+        \bigskip
+        {\fontsize{20}{20}\selectfont\textbf{\textsf{TECHNICAL DESCRIPTION}}} \\
+        \bigskip
+        \bigskip
+        \rule{50mm}{2pt} \\
+
+        \vspace*{20mm}
+
+        \large{\textit{DIN rail modules for power management}} \\
+        \large{\textit{Local control and monitoring by HMI or serial link}} \\
+        \large{\textit{Remote control and monitoring by long range radio}} \\
+
+        \vspace*{30mm}
+
+        \graph{100mm}{dinfox.jpg}
+
+    \end{center}
+
+    \newpage
+
+    \section*{Revision history}
+
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{|p{9mm}|p{16mm}|p{40mm}|p{90mm}|}
+            \tl\cellcolor{LightGray}\centering\textbf{Doc} &
+            \cellcolor{LightGray}\centering\textbf{Date} & \cellcolor{LightGray}\centering\textbf{Author(s) / Reviewer(s)} & \cellcolor{LightGray}\centering\textbf{Description} \tabularnewline
+            \tl\centering\rmvl{1.0} & \centering\tddate & \centering Ludovic Lesur & \centering\textit{Initial version.} \tabularnewline
+            \hline
+        \end{tabular}
+    \end{table}
+
+    \section*{Version compatibility table}
+
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{|p{9mm}|p{18.4mm}|p{18.4mm}|p{18.4mm}|p{18.4mm}|p{18.4mm}|p{18.4mm}|p{18.4mm}|}
+            \tl\cellcolor{LightGray}\centering\textbf{Doc} & \cellcolor{LightGray}\centering\textbf{una-lib} & \cellcolor{LightGray}\centering\textbf{una-at} & \cellcolor{LightGray}\centering\textbf{una-r4s8cr} & \cellcolor{LightGray}\centering\textbf{lmac-driver} & \cellcolor{LightGray}\centering\textbf{dinfox-registers} & \cellcolor{LightGray}\centering\textbf{dmm} & \cellcolor{LightGray}\centering\textbf{dsm} \tabularnewline
+            \tl\centering\rmvl{1.0} & \centering\svm{una-lib}{2.2} & \centering\svm{una-at}{5.0} & \centering\svm{una-r4s8cr}{1.0} & \centering\svm{lmac-driver}{3.0} & \centering\svm{dinfox-registers}{2.0} & \centering\svm{dmm}{6.4} & \centering\svm{dsm}{7.3} \tabularnewline
+            \hline
+        \end{tabular}
+    \end{table}
+
+    \newpage
+
+    \setcounter{tocdepth}{3}
+    \setcounter{secnumdepth}{4}
+    \begingroup
+    \tableofcontents
+    \endgroup
+
+    \addtocontents{toc}{\protect\setlength{\baselineskip}{4.5mm}}
+
+    \newpage
+
+    \onehalfspacing
+
+    \input{global_architecture}
+    \input{node_identification}
+    \input{bus_description}
+    \input{nodes_registers}
+    \input{radio_link_description}
+    \input{embedded_software}
+    \input{hardware_design}
+
+\end{document}

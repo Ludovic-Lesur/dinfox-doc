@@ -1,0 +1,73 @@
+\section{Node identification}
+
+\subsection{Node types}
+
+There are two categories of nodes:
+
+\bulletlist{
+    \item \textbf{DINFox nodes}: boards that were specifically designed for this project.
+    \item \textbf{External nodes}: existing products with RS485 interface which can be managed on the same bus.
+}
+
+\subsection{Node address (\texttt{NODE\_ADDR})} \label{node-address}
+
+Since all the boards of a DINFox system are connected through an RS485 bus, each node must have a unique address.
+\medskip \\
+DINFox nodes are based on the STM32L0 and STM32G4 families from ST-Microelectronics. The LPUART peripheral of these MCUs features a wake-up capability from stop mode where address recognition is performed by hardware. This is very suited to optimize the node power consumption, since the core will be woken-up only if a command was sent to its address. But this feature requires the most significant bit to be set, so that the usable address range is on the 7 lower bits.
+\medskip \\
+As a consequence, each node attached to a DINFox bus has a \textbf{unique 7 bits address} (\texttt{NODE\_ADDR}). All address values between \textbf{0x00} and \textbf{0x7E} are allowed, \textbf{0x7F} being used by the LMAC protocol (see \reflink{section}{dinfox-nodes-lmac}).
+\medskip \\
+By convention, the address \textbf{0x00} is reserved for the master node.
+
+\subsubsection{DINFox nodes}
+
+Even if there is no constraint on the address mapping for the slave nodes, some values and ranges have been assigned to each node type to facilitate address management when flashing the boards (see \reflink{table}{nodes-list}).
+
+\subsubsection{External nodes}
+
+\paragraph{KMTronic R4S8CR}
+
+The R4S8CR is a relay box manufactured by KMTronic. It is identified by \textbf{4 bits ID}, configurable with DIP switches. In order to be compatible with the DINFox system, a 7 bits address has been assigned accordingly: the \textbf{0x70 $-$ 0x7E} address range has been reserved for this product, where the 4 lower bits of the address correspond to (relay box ID $-$ 1). For example, the relay box configured with ID 13 has the 0x7C address assigned.
+\medskip \\
+This address is virtual from a physical point of view: it is only known by the high level layers to identify the node in the system, but is not used in the physical layer.
+
+\subsection{Board identifier (\texttt{BOARD\_ID})}
+
+As part of the UNA framework, each distinct hardware module has a \textbf{unique 8 bits board identifier} (\texttt{BOARD\_ID}). This value is used by the master to enumerate dynamically the slave nodes attached to the bus and their specific features (function, capabilities, set of registers, input controls, output data, radio messages format, etc.).
+\medskip \\
+On a given DINFox system, each node must have a unique address, but several nodes can have the same \texttt{BOARD\_ID}: for example, 3 independent relays will have 3 different addresses but the same board identifier, since this is the same module from an hardware point of view.
+\medskip \\
+The board identifiers have been assigned in chronological order during hardware design. They are defined in the \textbf{UNA library} which is available on GitHub: \url{https://github.com/Ludovic-Lesur/una-lib}.
+
+\newpage
+
+\subsection{Nodes list}
+
+The table below shows the list of nodes which are currently supported by the DINFox system. DINFox nodes are marked in \textcolor{Green}{green} whereas external nodes are in \textcolor{RedOrange}{orange}.
+
+\pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{12mm}|p{14mm}|p{25mm}|p{10mm}|p{25mm}|p{40mm}|p{17mm}|}
+        \tl\cellcolor{PeachPuff}\centering\texttt{BOARD\_ID} &
+        \cellcolor{LightGray}\centering\textbf{Node} & \cellcolor{LightGray}\centering\textbf{Description} & \cellcolor{LightGray}\centering\textbf{Width} & \cellcolor{LightGray}\centering\textbf{Input controls} & \cellcolor{LightGray}\centering\textbf{Output data} & \cellcolor{LightBlue}\centering\texttt{NODE\_ADDR} \tabularnewline
+        \tl\centering\textbf{0x00} & \centering \textcolor{Green}{LVRM} & \centering Low voltage relay module & \centering 3U & \centering Relay state & \centering Relay state, $ V_{COM} $, $ V_{OUT} $, $ I_{OUT} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x20 $-$ 0x27 \tabularnewline
+        \tl\centering\textbf{0x01} & \centering \textcolor{Green}{BPSM} & \centering  Backup power supply module & \centering 3U & \centering Charge enable, backup enable & \centering Charge enabled, Charge status, backup enabled, $ V_{SRC} $, $ V_{STR} $, $ V_{BKP} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x02 \tabularnewline
+        \tl\centering\textbf{0x02} & \centering \textcolor{Green}{DDRM} & \centering DC-DC converter module & \centering 3U & \centering DC-DC state & \centering DC-DC state, $ V_{IN} $, $ V_{OUT} $, $ I_{OUT} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x28 $-$ 0x2F \tabularnewline
+        \tl\centering\textbf{0x03} & \centering \textcolor{Green}{UHFM} & \centering $ 433\,/\,868\,MHz $ UHF modem & \centering 4U & \centering Radio TX / RX commands & \centering Radio RX data, $ V_{RF} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x03 \tabularnewline
+        \tl\centering\textbf{0x04} & \centering \textcolor{Green}{GPSM} & \centering GPS module  & \centering 3U & \centering Geo-location / time commands & \centering Geo-location, time, $ V_{ANT} $, $ V_{GPS} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x04 \tabularnewline
+        \tl\centering\textbf{0x05} & \centering \textcolor{Green}{SM} & \centering Sensors module  & \centering 3U & \centering Digital outputs state & \centering Digital and analog inputs state, $ T_{AMB} $, $ H_{AMB} $, $ V_{MCU} $, $ T_{MCU} $, external sensors data & \centering 0x05 \tabularnewline
+        \tl\centering\textbf{0x06} & \centering \textcolor{Green}{DIM} & \centering  Debug interface module  & \centering 2U & \centering $ - $ & \centering $ - $ & \centering 0x01 \tabularnewline
+        \tl\centering\textbf{0x07} & \centering \textcolor{Green}{RRM} & \centering Rectifier and regulator module  & \centering 3U & \centering Regulator state & \centering $ V_{IN} $, $ V_{OUT} $, $ I_{OUT} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x30 $-$ 0x37 \tabularnewline
+        \tl\centering\textbf{0x08} & \centering \textcolor{Green}{DMM} & \centering DINFox master module & \centering 4U & \centering $ - $ & \centering Number of nodes, $ V_{USB} $, $ V_{HMI} $, $ V_{RS} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x00 \tabularnewline
+        \tl\centering\textbf{0x09} & \centering \textcolor{Green}{MPMCM} & \centering Mains power monitoring and controller module & \centering 5U & \centering $ - $ & \centering $ V_{MAIN} $, $ P_{MAINx} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x06 \tabularnewline
+        \tl\centering\textbf{0x0A} & \centering \textcolor{RedOrange}{R4S8CR} & \centering Relay box from KMTronic & \centering $ - $ & \centering Relays state & \centering Relays state & \centering 0x70 $-$ 0x7E \tabularnewline
+        \tl\centering\textbf{0x0B} & \centering \textcolor{Green}{BCM} & \centering Battery charger module & \centering 4U & \centering Charge enable, backup enable & \centering Charge enabled, Charge status, backup enabled, $ V_{SRC} $, $ V_{STR} $, $ I_{STR} $, $ V_{BKP} $, $ V_{MCU} $, $ T_{MCU} $ & \centering 0x07 \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{DINFox system nodes list}
+    \label{nodes-list}
+\end{table}
+
+\newpage

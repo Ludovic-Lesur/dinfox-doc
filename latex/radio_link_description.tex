@@ -1,0 +1,332 @@
+\section{Radio link description}
+
+A DINFox system can be remotely monitored or controlled thanks to the \textbf{UHFM} node, which features a long-range bidirectional radio interface using \textbf{Sigfox} technology.
+
+\subsection{RF performances}
+
+The \textbf{UHFM HW1.0} has an RF front-end composed of a sub-GHz transceiver, a discrete RX LNA, a discrete TX filter, a diode switch and a common antenna connector. The next table recaps its characteristics. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{30mm}|p{77mm}|p{10mm}p{10mm}p{10mm}|p{10mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Parameter} & \cellcolor{LightGray}\centering \textbf{Condition} & \cellcolor{LightGray}\centering \textbf{Min} & \cellcolor{LightGray}\centering \textbf{Typ} & \cellcolor{LightGray}\centering \textbf{Max} & \cellcolor{LightGray}\centering \textbf{Unit}\tabularnewline
+        \tl\centering RF output power & \centering $ V_{RS}=5\,V $, continuous wave at $ 868.13\,MHz $ & & \centering 14 & & \centering $ dBm $ \tabularnewline
+        \pl{3-6}\centering TX current & & & \centering 32 & & \centering $ mA $ \tabularnewline
+        \tl\centering TX current & \centering $ V_{RS}=5\,V $, Sigfox uplink frame at $ 868.13\,MHz $ & & \centering 26 & & \centering $ mA $ \tabularnewline
+        \tl\centering RF sensitivity & \centering $ V_{RS}=5\,V $, Sigfox downlink frame at $ 869.525\,MHz $ & & \centering $ -128 $ & & \centering $ dBm $ \tabularnewline
+        \pl{3-6}\centering RX current & & & \centering 16 & & \centering $ mA $ \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{UHFM HW1.0 characteristics}
+\end{table}
+
+\subsection{Remote monitoring (uplink)}
+
+The remote monitoring is performed via the Sigfox uplink mechanism, which is periodically initiated by the DINFox system. One uplink operation sends the data of one node.
+\medskip \\
+The payload starts with a 2 bytes header composed of the address of the node (\texttt{NODE\_ADDR}) and its board ID (\texttt{BOARD\_ID}) which uniquely identifies the node within the DINFox system. The remaining bytes (1 to 10) contain the node data, whose format depends on the board ID. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{17.4mm}m{17.4mm}m{126mm}|}
+        \hline
+        \cellcolor{LightGray}\centering \textbf{B0} &
+        \cellcolor{LightGray}\centering \textbf{B1} &
+        \cellcolor{LightGray}\centering \textbf{B2 .. Bn (2 to 11)} \tabularnewline
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\centering \texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{PeachPuff}\centering \texttt{BOARD\_ID}} &
+        \multicolumn{1}{|c|}{\centering \texttt{DATA} (depends on board ID)} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Uplink payload format}
+\end{table}
+
+This format has several advantages:
+
+\bulletlist{
+    \item By containing the board ID, the frame is self-sufficient: on the server side, the parser can decode any UL payload without knowing the nodes address mapping (which is dynamically enumerated by the DINFox system itself, not the server).
+    \item The UL payload length can be optimized for a given board ID. Indeed, the number of data for a given node is fixed. A more generic format with register address and value would have been less efficient in term of bytes count.
+    \item Frame formats which where already defined from other Sigfox projects can be reused, such as the startup frame or the error stack, improving the code factorization on the server side.
+}
+
+When multiple uplink payload formats have to be defined for a same module (same board ID), the \textbf{UL payload size} is used as distinguishing criteria.
+\medskip \\
+The \texttt{DATA} field format is described in each node driver, implemented in the master embedded software: \url{https://github.com/Ludovic-Lesur/dmm/tree/master/middleware/radio/src}.
+
+\newpage
+
+\subsection{Remote control (downlink)}
+
+The remote control is performed via the Sigfox downlink mechanism, which is periodically initiated by the DINFox system. One downlink operation controls one or two nodes. Contrary to the uplink, a more generic interface was defined by accessing the node registers, since the DL payload length is fixed.
+\medskip \\
+The 8 bytes of the payload starts with a 1 byte header containing an operation code (\texttt{OP\_CODE}) which defines the action to perform on the node(s). The remaining bytes contain optional dynamic data, whose format depends on the operation code. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\centering \texttt{OP\_CODE}} &
+        \multicolumn{7}{|c|}{\centering \texttt{DATA} (depends on operation code)} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Downlink payload format}
+\end{table}
+
+Since the \texttt{DATA} field is limited to 7 bytes, some operation codes have a limited access range regarding the register size that can be accessed. However most of writable registers are 8 bits long and are fully supported by all operation codes. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{12mm}|p{35mm}|p{15mm}|p{17mm}|p{15mm}|p{15mm}|p{15mm}|p{15mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{\texttt{OP\_CODE}} & \cellcolor{LightGray}\centering \textbf{Operation} & \cellcolor{LightGray}\centering \textbf{Number of nodes} & \cellcolor{LightGray}\centering \textbf{Number of registers} & \cellcolor{LightGray}\centering \textbf{8 bits registers} & \cellcolor{LightGray}\centering \textbf{16 bits registers} & \cellcolor{LightGray}\centering \textbf{32 bits registers} & \cellcolor{LightGray}\centering \textbf{Format} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x00} & \centering No-operation (NOP) & \centering $ - $ & \centering $ - $ & \centering $ - $ & \centering $ - $ & \centering $ - $ & \centering\reflink{Table}{dl-nop} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x01} & \centering Single full read & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\reflink{Table}{single-full-read} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x02} & \centering Single full write & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\reflink{Table}{single-full-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x03} & \centering Single masked write & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{single-masked-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x04} & \centering Temporary full write & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\reflink{Table}{temporary-full-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x05} & \centering Temporary masked write & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{temporary-masked-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x06} & \centering Successive full write & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{successive-full-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x07} & \centering Successive masked write & \centering 1 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{successive-masked-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x08} & \centering Dual full write & \centering 1 & \centering 2 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{dual-full-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x09} & \centering Triple full write & \centering 1 & \centering 3 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{triple-full-write} \tabularnewline
+        \tl\centering\cellcolor{LightYellow}\centering\textbf{0x0A} & \centering Dual node write & \centering 2 & \centering 1 & \centering\textcolor{Green}{\cmark} & \centering\textcolor{Red}{\xmark} & \centering\textcolor{Red}{\xmark} & \centering\reflink{Table}{dual-node-full-write} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Downlink operation codes}
+\end{table}
+
+\subsubsection{No-operation (NOP)}
+
+The NOP operation should be used when a downlink is requested by the DINFox system but there is none action to perform. In terms of power consumption, it is better to send a NOP operation instead of sending nothing, because the radio modem will remain in RX state less time. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\centering\textbf{0x00}} &
+        \multicolumn{7}{|c|}{\cellcolor{VeryLightGreen}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{NOP operation DL payload format}
+    \label{dl-nop}
+\end{table}
+
+\newpage
+
+\subsubsection{Single full read}
+
+This operation reads one 32 bits register. The register value will be sent in the dedicated uplink action log message of the master board. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x01}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{5}{|c|}{\cellcolor{VeryLightGreen}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Single full read operation DL payload format}
+    \label{single-full-read}
+\end{table}
+
+\subsubsection{Single full write}
+
+This operation writes a value in one 32 bits register. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x02}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{4}{|c|}{\texttt{REG\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{VeryLightGreen}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Single full write operation DL payload format}
+    \label{single-full-write}
+\end{table}
+
+\subsubsection{Single masked write}
+
+This operation writes a value in a subpart of a 16 bits register defined by a mask. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x03}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_MASK}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{VeryLightGreen}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Single masked write operation DL payload format}
+    \label{single-masked-write}
+\end{table}
+
+\subsubsection{Temporary full write}
+
+This operation writes a value in one 32 bits register during a specified duration, and then comes back to the previous (read before downlink operation). The \texttt{DURATION} field follows the time byte format (see \hyperref[time-representation]{table \textbf{\ref{time-representation}}}). \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x04}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{4}{|c|}{\texttt{REG\_VALUE}} &
+        \multicolumn{1}{|c|}{\texttt{DURATION}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Temporary full write operation DL payload format}
+    \label{temporary-full-write}
+\end{table}
+
+\subsubsection{Temporary masked write}
+
+This operation writes a value in a subpart of a 16 bits register defined by a mask, during a specified duration, and then comes back to the previous (read before downlink operation). The \texttt{DURATION} field follows the time byte format (see \hyperref[time-representation]{table \textbf{\ref{time-representation}}}). \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x05}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_MASK}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_VALUE}} &
+        \multicolumn{1}{|c|}{\texttt{DURATION}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Temporary masked write operation DL payload format}
+    \label{temporary-masked-write}
+\end{table}
+
+\newpage
+
+\subsubsection{Successive full write}
+
+This operation performs two successive full write operations spaced by a given duration. The \texttt{DURATION} field follows the time byte format (see \hyperref[time-representation]{table \textbf{\ref{time-representation}}}). \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x06}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_VALUE\_1}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_VALUE\_2}} &
+        \multicolumn{1}{|c|}{\texttt{DURATION}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Successive full write DL payload format}
+    \label{successive-full-write}
+\end{table}
+
+\subsubsection{Successive masked write}
+
+This operation performs two successive masked write operations spaced by a given duration. The \texttt{DURATION} field follows the time byte format (see \hyperref[time-representation]{table \textbf{\ref{time-representation}}}). \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x07}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_ADDR}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_MASK}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_VALUE\_1}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_VALUE\_2}} &
+        \multicolumn{1}{|c|}{\texttt{DURATION}} &
+        \multicolumn{1}{|c|}{\cellcolor{VeryLightGreen}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Successive masked write DL payload format}
+    \label{successive-masked-write}
+\end{table}
+
+\subsubsection{Dual full write}
+
+This operation performs 2 independent full write operation on two 16 bits registers. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x08}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_1\_ADDR}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_1\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_2\_ADDR}} &
+        \multicolumn{2}{|c|}{\texttt{REG\_2\_VALUE}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Dual full write operation DL payload format}
+    \label{dual-full-write}
+\end{table}
+
+\subsubsection{Triple full write}
+
+This operation performs 3 independent full write operation on three 8 bits registers. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x09}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_1\_ADDR}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_1\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_2\_ADDR}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_2\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_3\_ADDR}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_3\_VALUE}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Triple full write operation DL payload format}
+    \label{triple-full-write}
+\end{table}
+
+\subsubsection{Dual node write}
+
+This operation performs 2 independent full write operation on two 8 bits registers of two different nodes. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \dlbytes
+        \hline
+        \multicolumn{1}{|c|}{\cellcolor{LightYellow}\textbf{0x0A}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\texttt{NODE\_1\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_1\_ADDR}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_1\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{LightBlue}\centering \texttt{NODE\_2\_ADDR}} &
+        \multicolumn{1}{|c|}{\cellcolor{Lavender}\texttt{REG\_2\_ADDR}} &
+        \multicolumn{1}{|c|}{\texttt{REG\_2\_VALUE}} &
+        \multicolumn{1}{|c|}{\cellcolor{VeryLightGreen}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Dual node write operation DL payload format}
+    \label{dual-node-full-write}
+\end{table}
+
+\newpage

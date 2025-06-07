@@ -1,0 +1,7 @@
+*.aux
+*.bkp
+*.gz
+*.log
+*.out
+*.toc
+latex/*.pdf

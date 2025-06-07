@@ -1,0 +1,30 @@
+\section{Global architecture}
+
+\subsection{Introduction}
+
+The main goal of the DINFox project is to design a scalable power system in order to control and monitor any kind of power supply (AC line, solar panel, backup, regulators, relays, etc.).
+\medskip \\
+This main idea can be split in several objectives:
+
+\bulletlist{
+    \item Design a \textbf{single module for a given function} (1 board for 1 relay for instance) and use a \textbf{common physical bus} to perform the communication between boards. Thanks to this modular approach, each DINFox system can be composed of a custom group of nodes according to the required features.
+    \item Provide a mechanical design in such a way that the boards can be fixed to a DIN rail and can be stacked together without additional wiring.
+    \item Define a \textbf{unified interface} to access all nodes in order to manage a  \textbf{single API for local control and monitoring}.
+    \item Achieve the \textbf{minimum power consumption} to be able to monitor backup sources such as battery powered systems.
+}
+
+\subsection{Functional description}
+
+A DINFox system consists of several DIN rail modules, called \textbf{nodes}, physically connected through an RS485 bus. The general behavior of the system is controlled by one \textbf{master} module which is the master of the RS485 bus. All other nodes are \textbf{slaves}, they are continuously listening on the bus to wait for commands.
+\medskip \\
+The DINFox system is a concrete implementation of the \textbf{Unified Node Access (UNA)} framework: all nodes of the bus are controlled through a set of registers regardless of the physical interface.
+\bigskip
+
+\begin{figure}[h]
+    \centering
+    \graph{\linewidth}{dinfox-system.drawio.png}
+    \vspace*{\baselineskip}
+    \capt{Functional architecture of a DINFox system}
+\end{figure}
+
+\newpage

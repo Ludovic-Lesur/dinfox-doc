@@ -1,0 +1,2124 @@
+\section{Nodes registers} \label{nodes-registers}
+
+Nodes input controls and output data are accessed through a \textbf{set of registers} (up to 32 bits value), that can be read and/or written by the master module.
+
+\subsection{Physical data representation}
+
+Custom representations have been defined for physical data, in order to align fields on 8 bits and optimize their size, reducing RS485 frame lengths and power consumption when sending data through radio.
+\medskip \\
+All \textbf{conversion functions} between physical values and custom representations are defined in the cross-platform \textbf{Unified Node Access library} (UNA-LIB) which is available in a GitHub repository: \url{https://github.com/Ludovic-Lesur/una-lib}.
+
+\subsubsection{Bit}
+
+A single bit is represented by a 2-bits value with the following mapping. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{20mm}|p{80mm}|}
+        \tl\cellcolor{LightGray}\centering\cellcolor{Lavender}\texttt{VALUE[1:0]} & \cellcolor{LightGray}\centering \textbf{Meaning} \tabularnewline
+        \tl\centering\textbf{0b00} & \centering Bit was successfully read as 0. \tabularnewline
+        \tl\centering\textbf{0b01} & \centering Bit was successfully read as 1. \tabularnewline
+        \tl\centering\textbf{0b10} & \centering Bit is not readable because it is forced by hardware. \tabularnewline
+        \tl\centering \textcolor{Red}{\textbf{0b11}} & \centering Error occurred during bit reading (error value). \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{Bit representation}
+    \label{bit-representation}
+\end{table}
+
+\subsubsection{Time}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{8}{m{17.4mm}}|}
+        \rmlsbyte
+        \hline\multicolumn{2}{|c}{\cellcolor{PeachPuff}\texttt{UNIT[1:0]}} & \multicolumn{6}{|c|}{\cellcolor{Lavender}\texttt{VALUE[5:0]}} \tabularnewline
+        \hline\multicolumn{2}{|c}{\textbf{0b00} : seconds} & \multicolumn{6}{|c|}{Raw value ($ 0-63 $ range)} \tabularnewline
+        \multicolumn{2}{|c}{\textbf{0b01} : minutes} & \multicolumn{6}{|c|}{\nop} \tabularnewline
+        \multicolumn{2}{|c}{\textbf{0b10} : hours} & \multicolumn{6}{|c|}{\nop} \tabularnewline
+        \multicolumn{2}{|c}{\textbf{0b11} : days} & \multicolumn{6}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{8-bits time representation}
+    \label{time-representation}
+\end{table}
+
+The available time ranges are the following:
+
+\bulletlist{
+    \item $ \sim [\,0-1 $ minute$\,$] with 1 second resolution.
+    \item $ \sim [\,0-1 $ hour$\,$] with 1 minute resolution.
+    \item $ \sim [\,0-2.5 $ days$\,$] with 1 hour resolution.
+    \item $ \sim [\,0-2 $ months$\,$] with 1 day resolution.
+    \item \textcolor{Red}{\textbf{0xFF}} is used as \textbf{error value}.
+}
+
+\newpage
+
+\subsubsection{Temperature}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{20mm}*{7}{m{17mm}}|}
+        \rmlsbyte
+        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{SIGN}} & \multicolumn{7}{|c|}{\cellcolor{Lavender}\texttt{VALUE[6:0]}} \tabularnewline
+        \hline\multicolumn{1}{|c}{\textbf{0b0} : positive} & \multicolumn{7}{|c|}{Raw absolute value in $ ^{\circ}C $ ($ 0-127 $ range)} \tabularnewline
+        \multicolumn{1}{|c}{\textbf{0b1} : negative} & \multicolumn{7}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{8-bits temperature representation}
+    \label{temperature-representation}
+\end{table}
+
+The available temperature range is the following:
+
+\bulletlist{
+    \item $ -127\,^{\circ}C $ to $ +126\,^{\circ}C $ with $ 1^{\circ}C $ resolution.
+    \item \textcolor{Red}{\textbf{0x7F}} is used as \textbf{error value}.
+}
+
+\vspace*{5mm}
+
+\subsubsection{Voltage}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{15mm}*{15}{m{6mm}}|}
+        \rmlsb
+        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{UNIT}} & \multicolumn{15}{|c|}{\cellcolor{Lavender}\texttt{VALUE[14:0]}} \tabularnewline
+        \hline\multicolumn{1}{|c}{\textbf{0b0} : $ mV $} & \multicolumn{15}{|c|}{Raw value ($ 0-32767 $ range)} \tabularnewline
+        \multicolumn{1}{|c}{\textbf{0b1} : $ dV $} & \multicolumn{15}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{16 bits voltage representation}
+    \label{voltage-representation}
+\end{table}
+
+The available voltage ranges are the following:
+
+\bulletlist{
+    \item $ \sim [\,0-32\,V\,] $ with $ 1\,mV $ resolution.
+    \item $ \sim [\,0-3.2\,kV\,] $ with $ 100\,mV $ resolution.
+    \item \textcolor{Red}{\textbf{0xFFFF}} is used as \textbf{error value}.
+}
+
+\vspace*{5mm}
+
+\subsubsection{Current}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|*{16}{m{6.6mm}}|}
+        \rmlsb
+        \hline\multicolumn{2}{|c}{\cellcolor{PeachPuff}\texttt{UNIT[1:0]}} & \multicolumn{14}{|c|}{\cellcolor{Lavender}\texttt{VALUE[13:0]}} \tabularnewline
+        \hline\multicolumn{2}{|c}{\textbf{0b00} : $ \mu A $} & \multicolumn{14}{|c|}{Raw value ($ 0-16383 $ range)} \tabularnewline
+        \multicolumn{2}{|c}{\textbf{0b01} : $ dmA $} & \multicolumn{14}{|c|}{\nop} \tabularnewline
+        \multicolumn{2}{|c}{\textbf{0b10} : $ mA $} & \multicolumn{14}{|c|}{\nop} \tabularnewline
+        \multicolumn{2}{|c}{\textbf{0b11} : $ dA $} & \multicolumn{14}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{16 bits current representation}
+    \label{current-representation}
+\end{table}
+
+The available current ranges are the following:
+
+\bulletlist{
+    \item $ \sim [\,0-16\,mA\,] $ with $ 1\,\mu A $ resolution.
+    \item $ \sim [\,0-1.6\,A\,] $ with $ 100\,\mu A $ resolution.
+    \item $ \sim [\,0-16\,A\,] $ with $ 1\,mA $ resolution.
+    \item $ \sim [\,0-1.6\,kA\,] $ with $ 100\,mA $ resolution.
+    \item \textcolor{Red}{\textbf{0xFFFF}} is used as \textbf{error value}.
+}
+
+\newpage
+
+\subsubsection{Electrical power}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{20mm}|*{2}{m{7mm}}|*{13}{m{5.4mm}}|}
+        \rmlsb
+        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{SIGN}} & \multicolumn{2}{|c}{\cellcolor{PeachPuff}\texttt{UNIT[1:0]}} & \multicolumn{13}{|c|}{\cellcolor{Lavender}\texttt{VALUE[12:0]}} \tabularnewline
+        \hline\multicolumn{1}{|c}{\textbf{0b0} : positive} & \multicolumn{2}{|c}{\textbf{0b00} : $ mW $} & \multicolumn{13}{|c|}{Raw value ($ 0-8191 $ range)} \tabularnewline
+        \multicolumn{1}{|c}{\textbf{0b1} : negative} & \multicolumn{2}{|c}{\textbf{0b01} : $ dW $} & \multicolumn{13}{|c|}{\nop} \tabularnewline
+        \multicolumn{1}{|c}{} & \multicolumn{2}{|c}{\textbf{0b10} : $ W $} & \multicolumn{13}{|c|}{\nop} \tabularnewline
+        \multicolumn{1}{|c}{} & \multicolumn{2}{|c}{\textbf{0b11} : $ daW $} & \multicolumn{13}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{16 bits electrical power representation}
+    \label{electrical-power-representation}
+\end{table}
+
+The available power ranges are the following:
+
+\bulletlist{
+    \item $ \sim [\,-8-8\,W\,] $ with $ 1\,mW $ resolution.
+    \item $ \sim [\,-800-800\,W\,] $ with $ 100\,mW $ resolution.
+    \item $ \sim [\,-8-8\,kW\,] $ with $ 1\,W $ resolution.
+    \item $ \sim [\,-80-80\,kW\,] $ with $ 10\,W $ resolution.
+    \item \textcolor{Red}{\textbf{0x7FFF}} is used as \textbf{error value}.
+}
+
+The same representation applies for \textit{VA} unit.
+
+\vspace*{5mm}
+
+\subsubsection{Electrical energy}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{20mm}|*{2}{m{7mm}}|*{13}{m{5.4mm}}|}
+        \rmlsb
+        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{SIGN}} & \multicolumn{2}{|c}{\cellcolor{PeachPuff}\texttt{UNIT[1:0]}} & \multicolumn{13}{|c|}{\cellcolor{Lavender}\texttt{VALUE[12:0]}} \tabularnewline
+        \hline\multicolumn{1}{|c}{\textbf{0b0} : positive} & \multicolumn{2}{|c}{\textbf{0b00} : $ mWh $} & \multicolumn{13}{|c|}{Raw value ($ 0-8191 $ range)} \tabularnewline
+        \multicolumn{1}{|c}{\textbf{0b1} : negative} & \multicolumn{2}{|c}{\textbf{0b01} : $ dWh $} & \multicolumn{13}{|c|}{\nop} \tabularnewline
+        \multicolumn{1}{|c}{} & \multicolumn{2}{|c}{\textbf{0b10} : $ Wh $} & \multicolumn{13}{|c|}{\nop} \tabularnewline
+        \multicolumn{1}{|c}{} & \multicolumn{2}{|c}{\textbf{0b11} : $ daWh $} & \multicolumn{13}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{16 bits electrical energy representation}
+    \label{electrical-energy-representation}
+\end{table}
+
+The available power ranges are the following:
+
+\bulletlist{
+    \item $ \sim [\,-8-8\,Wh\,] $ with $ 1\,mWh $ resolution.
+    \item $ \sim [\,-800-800\,Wh\,] $ with $ 100\,mWh $ resolution.
+    \item $ \sim [\,-8-8\,kWh\,] $ with $ 1\,Wh $ resolution.
+    \item $ \sim [\,-80-80\,kWh\,] $ with $ 10\,Wh $ resolution.
+    \item \textcolor{Red}{\textbf{0x7FFF}} is used as \textbf{error value}.
+}
+
+The same representation applies for \textit{VAh} unit.
+
+\newpage
+
+\subsubsection{Power factor}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{20mm}*{7}{m{17mm}}|}
+        \rmlsbyte
+        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{SIGN}} & \multicolumn{7}{|c|}{\cellcolor{Lavender}\texttt{VALUE[6:0]}} \tabularnewline
+        \hline\multicolumn{1}{|c}{\textbf{0b0} : positive} & \multicolumn{7}{|c|}{Floor of absolute value $ \times $ 100 ($ 0-100 $ range)} \tabularnewline
+        \multicolumn{1}{|c}{\textbf{0b1} : negative} & \multicolumn{7}{|c|}{\nop} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{8 bits power factor representation}
+    \label{power-factor-representation}
+\end{table}
+
+The available power factor range is the following:
+
+\bulletlist{
+    \item $ -1 $ to $ +1 $ with $ 0,01 $ resolution.
+    \item \textcolor{Red}{\textbf{0x7F}} is used as \textbf{error value}.
+}
+
+\vspace*{5mm}
+
+\subsubsection{RF power}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{20mm}*{7}{m{17mm}}|}
+        \rmlsbyte
+        \hline\multicolumn{8}{|c|}{\cellcolor{Lavender}\texttt{VALUE[7:0]}} \tabularnewline
+        \hline\multicolumn{8}{|c|}{Offset ($ 0-255 $ range) defined as $ (P[dBm] + 174) $} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{8 bits RF power representation}
+    \label{rf-power-representation}
+\end{table}
+
+The available RF power range is the following:
+
+\bulletlist{
+    \item $ -174\,dBm $ to $ +80\,dBm $ with $ 1\,dB $ resolution.
+    \item \textcolor{Red}{\textbf{0xFF}} is used as \textbf{error value}.
+}
+
+\vspace*{5mm}
+
+\subsubsection{Year}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{20mm}*{7}{m{17mm}}|}
+        \rmlsbyte
+        \hline \multicolumn{8}{|c|}{\cellcolor{Lavender}\texttt{VALUE[7:0]}} \tabularnewline
+        \hline \multicolumn{8}{|c|}{Offset ($ 0-255 $ range) defined as $ (Y - 2000) $} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{8 bits year representation}
+    \label{year-representation}
+\end{table}
+
+The available year range is the following:
+
+\bulletlist{
+    \item $ 2000 $ to $ 2254 $ with $ 1 $ year resolution.
+    \item \textcolor{Red}{\textbf{0xFF}} is used as \textbf{error value}.
+}
+
+\newpage
+
+\subsection{DINFox nodes}
+
+DINFox nodes have a minimum registers set available on all nodes. Following the common registers, all nodes can have specific registers that contain the specific input controls or output data of the node. They are defined in the following GitHub repository: \url{https://github.com/Ludovic-Lesur/dinfox-registers}.
+
+\subsubsection{Common registers set}
+
+\rtt {
+    \rtl {0x00} {NODE\_ID} {16} {R} {NIDR} {Node address and board ID.}
+    \rtl {0x01} {HW\_VERSION} {16} {R} {HWVR} {Node hardware version.}
+    \rtl {0x02} {SW\_VERSION\_0} {32} {R} {SWVR0} {Node embedded software version}
+    \rtl {0x03} {SW\_VERSION\_1} {32} {R} {SWVR1} {Node embedded software commit ID.}
+    \rtl {0x04} {FLAGS\_0} {8} {R} {FR0} {Common compilation flags.}
+    \rtl {0x05} {ERROR\_STACK} {16} {R} {ESR} {Error stack.}
+    \rtl {0x06} {STATUS\_0} {16} {R} {SR0} {Common status register.}
+    \rtl {0x07} {CONTROL\_0} {8} {R/W} {CR0} {Common control register.}
+    \rtl {0x08} {ANALOG\_DATA\_0} {32} {R} {ADR0} {Common analog data.}
+}
+{DINFox common registers set}
+
+\paragraph{Node ID register} \label{node-id-register}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{8}{|c}{BOARD\_ID[7:0]} & \rmu{1}{|c} & \rmf{7}{|c|}{NODE\_ADDR[6:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$8} {8} {BOARD\_ID} {$ - $} {Node board ID \\ (see \reflink{table}{nodes-list})} {\textbf{Raw} value.}
+    \rfu {7} {1} {0b0}
+    \rff {6$\,-\,$0} {7} {NODE\_ADDR} {$ - $} {Node address \\ (see \reflink{section}{node-address})} {\textbf{Raw} value.}
+}
+{Node ID register}
+{NIDR}
+
+\newpage
+
+\paragraph{Hardware version register}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{8}{|c}{MINOR[7:0]} & \rmf{8}{|c|}{MAJOR[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$8} {8} {MINOR} {$ - $} {Minor part of the hardware version.} {\textbf{Raw} value.}
+    \rff {7$\,-\,$0} {8} {MAJOR} {$ - $} {Major part of the hardware version.} {\textbf{Raw} value.}
+}
+{Hardware version register}
+{HWVR}
+
+\paragraph{Software version register 0}
+
+\rmt
+{\rmu{7}{|c} & \rmf{1}{|c}{DTYF} & \rmf{8}{|c|}{COMMIT\_INDEX[7:0]}}
+{\rmf{8}{|c}{MINOR[7:0]} & \rmf{8}{|c|}{MAJOR[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$25} {7} {0b0000000}
+    \rff {24} {1} {DTYF} {$ - $} {Git dirty flag.} {\textbf{0b0} : clean code. \\ \textbf{0b1} : dirty code.}
+    \rff {23$\,-\,$16} {8} {COMMIT\_INDEX} {$ - $} {Git commit index.} {\textbf{Raw} value.}
+    \rff {15$\,-\,$8} {8} {MINOR} {$ - $} {Minor part of the software version.} {\textbf{Raw} value.}
+    \rff {7$\,-\,$0} {8} {MAJOR} {$ - $} {Major part of the software version.} {\textbf{Raw} value.}
+}
+{Software version register 0}
+{SWVR0}
+
+\newpage
+
+\paragraph{Software version register 1}
+
+\rmt
+{\rmu{4}{|c} & \rmf{12}{|c|}{COMMIT\_ID[27:16]}}
+{\rmf{16}{|c|}{COMMIT\_ID[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$28} {4} {0b0000}
+    \rff {27$\,-\,$0} {28} {COMMIT\_ID} {$ - $} {Git commit ID.} {\textbf{Raw} value.}
+}
+{Software version register 1}
+{SWVR1}
+
+\paragraph{Flags register 0}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{14}{|c} & \rmf{1}{|c}{NFRF} & \rmf{1}{|c|}{DF}}
+
+\rft {
+    \rfu {31$\,-\,$2} {30} {0b0[30]}
+    \rff {1} {1} {NFRF} {$ - $} {NVM factory reset flag.} {\textbf{0b0} : Factory reset is disabled. \\ \textbf{0b1} : Factory reset is enabled.}
+    \rff {0} {1} {DF} {$ - $} {Debug mode flag.} {\textbf{0b0} : Debug mode is disabled. \\ \textbf{0b1} : Debug mode is enabled.}
+}
+{Flags register 0}
+{FR0}
+
+\newpage
+
+\paragraph{Error stack register} \label{error-stack-register}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{ERROR[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {ERROR} {$ - $} {Last error code stored in stack.} {\textbf{Raw} value.}
+}
+{Error stack register}
+{ESR}
+
+\medskip
+This register can be read multiple times to unstack all errors, until the returned value is 0.
+\medskip \\
+Errors codes use a \textbf{relative base system} where each driver has its own sub-bases. When an error occur, the code is propagated to the upper layers and encapsulated in the sub-base of each calling driver until the application. This way, \textbf{all the stack trace is combined in a single 16-bits value} instead of creating multiple codes with absolute bases. This is very useful to monitor the error codes remotely, especially with a radio link which has a limited number of bytes.
+\medskip \\
+Root bases are defined in each embedded software project:
+
+\bulletlist{
+    \item Master node: \url{https://github.com/Ludovic-Lesur/dmm/blob/master/application/inc/error_base.h}
+    \item Slave nodes: \url{https://github.com/Ludovic-Lesur/dsm/blob/master/application/inc/error_base.h}
+}
+
+\newpage
+
+\paragraph{Status register 0}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{6}{|c} & \rmf{1}{|c}{ESF} & \rmf{1}{|c}{BF} & \rmf{1}{|c}{LPWR} & \rmf{1}{|c}{WWDG} & \rmf{1}{|c}{IWDG} & \rmf{1}{|c}{SFT} & \rmf{1}{|c}{POR} & \rmf{1}{|c}{PIN} & \rmf{1}{|c}{OBL} & \rmf{1}{|c|}{FW}}
+
+\rft {
+    \rfu {31$\,-\,$10} {22} {0b0[22]}
+    \rff {9} {1} {ESF} {0b0} {MCU error stack flag.} {\textbf{0b0} : error stack is empty. \\ \textbf{0b1} : error stack is not empty.}
+    \rff {8} {1} {BF} {0b1} {MCU boot flag.} {\textbf{0b0} : MCU did not reboot since last flag clearing. \\ \textbf{0b1} : MCU rebooted since last flag clearing.}
+    \rff {7} {1} {LPWR} {$ - $} {Low power reset flag.} {\textbf{0b0} : no LPWR reset occurred. \\ \textbf{0b1} : LPWR reset occurred.}
+    \rff {6} {1} {WWDG} {$ - $} {Window watchdog reset flag.} {\textbf{0b0} : no WWDG reset occurred. \\ \textbf{0b1} : WWDG reset occurred.}
+    \rff {5} {1} {IWDG} {$ - $} {Independent watchdog reset flag.} {\textbf{0b0} : no IWDG reset occurred. \\ \textbf{0b1} : IWDG reset occurred.}
+    \rff {4} {1} {SFT} {$ - $} {Software reset flag.} {\textbf{0b0} : no SFT reset occurred. \\ \textbf{0b1} : SFT reset occurred.}
+    \rff {3} {1} {POR} {$ - $} {Power on reset flag.} {\textbf{0b0} : no POR reset occurred. \\ \textbf{0b1} : POR reset occurred.}
+    \rff {2} {1} {PIN} {$ - $} {NRST pin reset flag.} {\textbf{0b0} : no PIN reset occurred. \\ \textbf{0b1} : PIN reset occurred.}
+    \rff {1} {1} {OBL} {$ - $} {Options bytes loading reset flag.} {\textbf{0b0} : no OBL reset occurred. \\ \textbf{0b1} : OBL reset occurred.}
+    \rff {0} {1} {FW} {$ - $} {Firewall reset flag.} {\textbf{0b0} : no FW reset occurred. \\ \textbf{0b1} : FW reset occurred.}
+}
+{Status register 0}
+{SR0}
+
+\newpage
+
+\paragraph{Control register 0}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{13}{|c} & \rmf{1}{|c|}{BFC} & \rmf{1}{|c|}{MTRG} & \rmf{1}{|c|}{RTRG}}
+
+\rft {
+    \rfu {31$\,-\,$3} {29} {0b0[29]}
+    \rff {2} {1} {BFC} {0b0} {MCU boot flag clear.} {\textbf{0b0} : no action. \\ \textbf{0b1} : clear boot flag (\texttt{BF} bit) in status register 0.}
+    \rff {1} {1} {MTRG} {0b0} {Measure trigger flag.} {\textbf{0b0} : no action (W) or no pending measurement (R). \\ \textbf{0b1} : start measurements (W) or measurements pending (R).}
+    \rff {0} {1} {RTRG} {0b0} {Reset trigger flag.} {\textbf{0b0} : no action. \\ \textbf{0b1} : trigger software reset.}
+}
+{Control register 0}
+{CR0}
+
+\paragraph{Analog data register 0}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{TMCU[7:0]}}
+{\rmf{16}{|c|}{VMCU[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {23$\,-\,$16} {8} {TMCU} {0x7F} {MCU temperature.} {\reflink{Table}{temperature-representation}}
+    \rff {15$\,-\,$0} {16} {VMCU} {0xFFFF} {MCU supply voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 0}
+{ADR0}
+
+\newpage
+
+\subsubsection{LVRM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R} {LVRM-FR1} {Compilation flags.}
+    \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {LVRM-CFGR0} {Battery voltage thresholds for BMS mode.}
+    \rtl {0x0B} {CONFIGURATION\_1} {16} {R/W} {LVRM-CFGR1} {$ I_{OUT} $ offset calibration value.}
+    \rtl {0x0C} {STATUS\_1} {8} {R} {LVRM-SR1} {Relay status.}
+    \rtl {0x0D} {CONTROL\_1} {8} {R/W} {LVRM-CR1} {Relay control.}
+    \rtl {0x0E} {ANALOG\_DATA\_1} {32} {R} {LVRM-ADR1} {$ V_{COM} $ and $ V_{OUT} $ voltages measurements.}
+    \rtl {0x0F} {ANALOG\_DATA\_2} {16} {R} {LVRM-ADR2} {$ I_{OUT} $ current measurement.}
+}
+{LVRM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{14}{|c} & \rmf{1}{|c|}{RLFH} & \rmf{1}{|c|}{BMSF}}
+
+\rft {
+    \rfu {31$\,-\,$2} {30} {0b0[30]}
+    \rff {1} {1} {RLFH} {$ - $} {Relay control mode (set at compilation step according to hardware).} {\textbf{0b0} : Relay controlled by the MCU. \\ \textbf{0b1} : Relay controlled by hardware.}
+    \rff {0} {1} {BMSF} {$ - $} {BMS mode flag (set at compilation step).} {\textbf{0b0} : BMS mode disabled. \\ \textbf{0b1} : BMS mode enabled.}
+}
+{Flags register 1}
+{LVRM-FR1}
+
+\newpage
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmf{16}{|c|}{VBATT\_THRESHOLD\_HIGH}}
+{\rmf{16}{|c|}{VBATT\_THRESHOLD\_LOW}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VBATT\_THRESHOLD\_HIGH} {$ - $} {High voltage threshold of the BMS hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VBATT\_THRESHOLD\_LOW} {$ - $} {Low voltage threshold of the BMS hysteresis.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 0}
+{LVRM-CFGR0}
+
+\textbf{\underline{Note:}} this register is only used when the \texttt{BMSF} bit is set.
+
+\paragraph{Configuration register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{IOUT\_OFFSET[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {IOUT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
+}
+{Configuration register 1}
+{LVRM-CFGR1}
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{14}{|c} & \rmf{2}{|c|}{RLSTST}}
+
+\rft {
+    \rfu {31$\,-\,$2} {30} {0b0[30]}
+    \rff {1$\,-\,$0} {2} {RLSTST} {0b11} {Relay state status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : NC or R path closed. \\ \textbf{0b01} : NO or S path closed.}
+}
+{Status register 1}
+{LVRM-SR1}
+
+\newpage
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{RLST}}
+
+\rft {
+    \rfu {31$\,-\,$1} {31} {0b0[31]}
+    \rff {0} {1} {RLST} {0b0} {Relay state control.} {\textbf{0b0} : close NC or R path. \\ \textbf{0b1} : close NO or S path.}
+}
+{Control register 1}
+{LVRM-CR1}
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VOUT[15:0]}}
+{\rmf{16}{|c|}{VCOM[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VOUT} {0xFFFF} {Relay output voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VCOM} {0xFFFF} {Relay common input voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{LVRM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{IOUT[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {IOUT} {0xFFFF} {Relay output current.} {\reflink{Table}{current-representation}}
+}
+{Analog data register 2}
+{LVRM-ADR2}
+
+\newpage
+
+\subsubsection{BPSM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R}{BPSM-FR1} {Compilation flags.}
+    \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {BPSM-CFGR0} {\texttt{CHEN} threshold and toggle period.}
+    \rtl {0x0B} {CONFIGURATION\_1} {32} {R/W} {BPSM-CFGR1} {Low voltage flag (\texttt{LVF}) thresholds.}
+    \rtl {0x0C} {STATUS\_1} {16} {R} {BPSM-SR1} {Charging and backup status.}
+    \rtl {0x0D} {CONTROL\_1} {8} {R/W} {BPSM-CR1} {Charging and backup control.}
+    \rtl {0x0E} {ANALOG\_DATA\_1} {32} {R} {BPSM-ADR1} {$ V_{SRC} $ and $ V_{STR} $ voltages measurements.}
+    \rtl {0x0F} {ANALOG\_DATA\_2} {16} {R} {BPSM-ADR2} {$ V_{BKP} $ voltage measurement.}
+}
+{BPSM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{12}{|c} & \rmf{1}{|c}{BKFH} & \rmu{1}{|c} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CEFH}}
+
+\rft {
+    \rfu {31$\,-\,$4} {28} {0x0000000}
+    \rff {3} {1} {BKFH} {$ - $} {Backup output control mode (set at compilation step according to hardware).} {\textbf{0b0} : Backup output controlled by the MCU. \\ \textbf{0b1} : Backup output controlled by hardware.}
+    \rfu {2} {1} {0b0}
+    \rff {1} {1} {CSFH} {$ - $} {Charge status mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge status connected to the MCU. \\ \textbf{0b1} : Charge status connected in hardware.}
+    \rff {0} {1} {CEFH} {$ - $} {Charge control mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge controlled by the MCU. \\ \textbf{0b1} : Charge controlled by hardware.}
+}
+{Flags register 1}
+{BPSM-FR1}
+
+\newpage
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHEN\_TOGGLE\_PERIOD}}
+{\rmf{16}{|c|}{CHEN\_THRESHOLD}}
+
+\rft {
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {23$\,-\,$16} {8} {CHEN\_TOGGLE\_PERIOD} {$ - $} {Charge toggle period.} {\reflink{Table}{time-representation}}
+    \rff {15$\,-\,$0} {16} {CHEN\_THRESHOLD} {$ - $} {Voltage threshold to set \texttt{CHEN} bit.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 0}
+{BPSM-CFGR0}
+
+\textbf{\underline{Note:}} this register is only used when \texttt{CHMD = 0b1} and \texttt{CEFH = 0b0}.
+
+\paragraph{Configuration register 1}
+
+\rmt
+{\rmf{16}{|c|}{LVF\_HIGH\_THRESHOLD}}
+{\rmf{16}{|c|}{LVF\_LOW\_THRESHOLD}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {LVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {LVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 1}
+{BPSM-CFGR1}
+
+\newpage
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{7}{|c} & \rmf{1}{|c}{LVF} &  \rmu{2}{|c} & \rmf{2}{|c}{CHRGST} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
+
+\rft {
+    \rfu {31$\,-\,$9} {23} {0b0[23]}
+    \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : storage element voltage is above the threshold. \\ \textbf{0b1} : storage element voltage is under the threshold.}
+    \rfu {7$\,-\,$6} {2} {0b00}
+    \rff {5$\,-\,$4} {2} {CHRGST} {0b11} {Storage element charging status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge pending. \\ \textbf{0b01} : charge complete.}
+    \rff {3$\,-\,$2} {2} {CHENST} {0b11} {Storage element charging enable status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
+    \rff {1$\,-\,$0} {2} {BKENST} {0b11} {Backup output state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : backup output disabled. \\ \textbf{0b01} : backup output enabled.}
+}
+{Status register 1}
+{BPSM-SR1}
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{13}{|c} & \rmf{1}{|c}{CHEN} & \rmf{1}{|c}{CHMD} & \rmf{1}{|c|}{BKEN}}
+
+\rft {
+    \rfu {31$\,-\,$3} {29} {0b0[29]}
+    \rff {2} {1} {CHEN} {0b0} {Storage element charging control \\ (only if \texttt{CHMD = 0b1} and \texttt{CEFH = 0b0}).} {\textbf{0b0} : disable charge. \\ \textbf{0b1} : enable charge.}
+    \rff {1} {1} {CHMD} {0b0} {Storage element charging mode.} {\textbf{0b0} : charge is automatically controlled by software. \\ \textbf{0b1} : charge is controlled by the \texttt{CHEN} bit.}
+    \rff {0} {1} {BKEN} {0b0} {Backup output control.} {\textbf{0b0} : disable backup output. \\ \textbf{0b1} : enable backup output.}
+}
+{Control register 1}
+{BPSM-CR1}
+
+\newpage
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VSTR[15:0]}}
+{\rmf{16}{|c|}{VSRC[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VSTR} {0xFFFF} {Storage element voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VSRC} {0xFFFF} {Source voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{BPSM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{VBKP[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {VBKP} {0xFFFF} {Backup voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 2}
+{BPSM-ADR2}
+
+\newpage
+
+\subsubsection{DDRM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R} {DDRM-FR1} {Compilation flags.}
+    \rtl {0x0A} {CONFIGURATION\_0} {16} {R/W} {DDRM-CFGR0} {$ I_{OUT} $ offset calibration value.}
+    \rtl {0x0B} {STATUS\_1} {8} {R} {DDRM-SR1} {DC$-$DC converter status.}
+    \rtl {0x0C} {CONTROL\_1} {8} {R/W} {DDRM-CR1} {DC$-$DC converter control.}
+    \rtl {0x0D} {ANALOG\_DATA\_1} {32} {R} {DDRM-ADR1} {$ V_{IN} $ and $ V_{OUT} $ voltages measurements.}
+    \rtl {0x0E} {ANALOG\_DATA\_2} {16} {R} {DDRM-ADR2} {$ I_{OUT} $ current measurement.}
+}
+{DDRM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{DDFH}}
+
+\rft {
+    \rfu {31$\,-\,$1} {31} {0b0[31]}
+    \rff {0} {1} {DDFH} {$ - $} {DC$-$DC control mode (set at compilation step according to hardware).} {\textbf{0b0} : DC$-$DC controlled by the MCU. \\ \textbf{0b1} : DC$-$DC controlled by hardware.}
+}
+{Flags register 1}
+{DDRM-FR1}
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{IOUT\_OFFSET[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {IOUT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
+}
+{Configuration register 0}
+{DDRM-CFGR0}
+
+\newpage
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{14}{|c} & \rmf{2}{|c|}{DDENST}}
+
+\rft {
+    \rfu {31$\,-\,$2} {30} {0b0[30]}
+    \rff {1$\,-\,$0} {2} {DDENST} {0b11} {DC$-$DC converter state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : DC$-$DC output disabled. \\ \textbf{0b01} : DC$-$DC output enabled.}
+}
+{Status register 1}
+{DDRM-SR1}
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{DDEN}}
+
+\rft {
+    \rfu {31$\,-\,$1} {31} {0b0[31]}
+    \rff {0} {1} {DDEN} {0b0} {DC$-$DC converter state control.} {\textbf{0b0} : disable DC$-$DC output \\ \textbf{0b1} : enable DC$-$DC output.}
+}
+{Control register 1}
+{DDRM-CR1}
+
+\newpage
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VOUT[15:0]}}
+{\rmf{16}{|c|}{VIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VOUT} {0xFFFF} {DC$-$DC converter output voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VIN} {0xFFFF} {DC$-$DC converter input voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{DDRM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{IOUT[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {IOUT} {0xFFFF} {DC$-$DC converter output current.} {\reflink{Table}{current-representation}}
+}
+{Analog data register 2}
+{DDRM-ADR2}
+
+\newpage
+
+\subsubsection{UHFM specific registers set}
+
+\rtt {
+    \rtl {0x09} {CONFIGURATION\_0} {16} {R/W} {UHFM-CFGR0} {Sigfox radio parameters.}
+    \rtl {0x0A} {CONFIGURATION\_1} {32} {R/W} {UHFM-CFGR1} {Sigfox radio parameters.}
+    \rtl {0x0B} {STATUS\_1} {32} {R} {UHFM-SR1} {Modem status.}
+    \rtl {0x0C} {CONTROL\_1} {32} {R/W} {UHFM-CR1} {Modem control.}
+    \rtl {0x0D} {ANALOG\_DATA\_1} {32} {R} {UHFM-ADR1} {$ V_{RF} $ voltage measurement.}
+    \rtl {0x0E} {SIGFOX\_EP\_ID} {32} {R} {UHFM-SEPID} {Sigfox end-point ID.}
+    \rtl {0x0F} {SIGFOX\_UL\_PAYLOAD\_0} {32} {R/W} {UHFM-SULP0} {Sigfox UL payload bytes 0 to 3.}
+    \rtl {0x10} {SIGFOX\_UL\_PAYLOAD\_1} {32} {R/W} {UHFM-SULP1} {Sigfox UL payload bytes 4 to 7.}
+    \rtl {0x11} {SIGFOX\_UL\_PAYLOAD\_2} {32} {R/W} {UHFM-SULP2} {Sigfox UL payload bytes 8 to 11.}
+    \rtl {0x12} {SIGFOX\_DL\_PAYLOAD\_0} {32} {R} {UHFM-SDLP0} {Sigfox DL payload bytes 0 to 3.}
+    \rtl {0x13} {SIGFOX\_DL\_PAYLOAD\_1} {32} {R} {UHFM-SDLP1} {Sigfox DL payload bytes 4 to 7.}
+    \rtl {0x14} {RADIO\_TEST\_0} {32} {R/W} {UHFM-RT0} {Radio test modes configuration.}
+    \rtl {0x15} {RADIO\_TEST\_1} {16} {R/W} {UHFM-RT1} {Radio test modes configuration.}
+}
+{UHFM specific registers set}
+
+\newpage
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{2}{|c} & \rmf{4}{|c}{RFP\_TEST\_MODE[4:0]} & \rmf{5}{|c}{UL\_PAYLOAD\_SIZE[4:0]} & \rmf{1}{|c}{BF} & \rmf{3}{|c}{MSGT[2:0]} & \rmf{1}{|c|}{CMSG}}
+{\rmf{8}{|c}{TX\_POWER[7:0]} & \rmf{2}{|c}{NFR[1:0]} & \rmf{2}{|c}{BR[1:0]} & \rmf{4}{|c|}{RC[4:0]}}
+
+\rft {
+    \rfu {31$\,-\,$30} {2} {0b00}
+    \rff {29$\,-\,$26} {4} {RFP\_TEST\_MODE} {0b0000} {Sigfox RFP Addon test mode reference.} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-addon-rfp/blob/master/inc/sigfox_ep_addon_rfp_api.h}{sigfox\_ep\_addon\_rfp\_api.h} file of Sigfox RFP Addon.}
+    \rff {25$\,-\,$21} {5} {UL\_PAYLOAD\_SIZE} {0b00000} {Uplink payload size.} {\textbf{Raw} value in bytes \\ (0 to 12 for protocol V1)}
+    \rff {20} {1} {BF} {0b0} {Bidirectional flag.} {\textbf{0b0} : uplink only \\ \textbf{0b1} : uplink with downlink request}
+    \rff {19$\,-\,$17} {3} {MSGT} {0b000} {Application message type (\texttt{CMSG}$\,=0$) \\ or control message type (\texttt{CMSG}$\,=1$).} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-lib/blob/master/inc/sigfox_types.h}{sigfox\_types.h} file of \\ Sigfox End-Point Library.}
+    \rff {16} {1} {CMSG} {0b0} {Control message flag. (\textcolor{Red}{Disabled at compilation step}).} {\textbf{0b0} : application message \\ \textbf{0b1} : control message}
+    \rff {15$\,-\,$8} {8} {TX\_POWER} {0xBC} {TX power of Sigfox transmission. \\ (\textcolor{Red}{$ 14\,dBm $ fixed at compilation step}).} {\reflink{Table}{rf-power-representation}}
+    \rff {7$\,-\,$6} {2} {NFR} {0b11} {Number of frames per uplink messages (N).} {\textbf{0b00} : no frame (uplink disabled) \\ \textbf{0b01} : 1 frame (N=1) \\ \textbf{0b10} : 2 frames (N=2) \\ \textbf{0b11} : 3 frames (N=3)}
+    \rff {5$\,-\,$4} {2} {BR} {0b00} {Signal bit rate.} {\textbf{0b01} : $ 100\,bps $ \\ \textbf{0b01} : $ 600\,bps $ \\ \textbf{0b10$-$0b11} : \textcolor{Green}{reserved for future use}}
+    \rff {3$\,-\,$0} {4} {RC} {0b0000} {Sigfox radio configuration zone. \\ (\textcolor{Red}{RC1 fixed at compilation step}).} {\textbf{0b0000} : RC1 \\ \textbf{0b0001} : RC2 \\ \textbf{0b0010} : RC3C \\ \textbf{0b0011} : RC3D \\ \textbf{0b0100} : RC4 \\ \textbf{0b0101} : RC5 \\ \textbf{0b0110} : RC6 \\ \textbf{0b0111} : RC7 \\ \textbf{0b1000$-$0b1111} : \textcolor{Green}{reserved for future use}}
+}
+{Configuration register 0}
+{UHFM-CFGR0}
+
+\bigskip
+\textbf{\underline{Note:}} Application message payload is given in the \texttt{SIGFOX\_UL\_PAYLOAD\_x} registers.
+
+\newpage
+
+\paragraph{Configuration register 1}
+
+\rmt
+{\rmf{16}{|c|}{TCONF[15:0]}}
+{\rmf{16}{|c|}{TIFU[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {TCONF} {0x07D0} {Delay between downlink reception and confirmation frame transmission. \\ (\textcolor{Red}{$ 2000\,ms $ fixed at compilation step}).} {\textbf{Raw} value in $ ms $ \\ (1400 to 4000)}
+    \rff {15$\,-\,$0} {16} {TIFU} {0x03E8} {Delay between uplink frames. \\ (\textcolor{Red}{$ 1000\,ms $ fixed at compilation step}).} {\textbf{Raw} value in $ ms $ \\ (0 to 2000)}
+}
+{Configuration register 1}
+{UHFM-CFGR1}
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{4}{|c} & \rmf{12}{|c|}{BIDIRECTIONAL\_MC[11:0]}}
+{\rmf{8}{|c}{DL\_RSSI[7:0]} & \rmf{8}{|c|}{MESSAGE\_STATUS[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$28} {4} {0x0}
+    \rff {27$\,-\,$16} {12} {BIDIRECTIONAL\_MC} {$ - $} {Message counter of the last uplink with bidirectional request.} {\textbf{Raw} value.}
+    \rff {15$\,-\,$8} {8} {DL\_RSSI} {0x00} {RSSI of the last downlink message received.} {\reflink{Table}{rf-power-representation}}
+    \rff {7$\,-\,$0} {8} {MESSAGE\_STATUS} {0x00} {Sigfox message transmission status.} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-lib/blob/master/inc/sigfox_ep_api.h}{sigfox\_ep\_api.h} file of \\ Sigfox End-Point Library.}
+}
+{Status register 1}
+{UHFM-SR1}
+
+\newpage
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{12}{|c} & \rmf{1}{|c}{RSEN} & \rmf{1}{|c}{CWEN} & \rmf{1}{|c}{TTRG} & \rmf{1}{|c|}{STRG}}
+
+\rft {
+    \rfu {31$\,-\,$4} {28} {0b0[28]}
+    \rff {3} {1} {RSEN} {0b0} {Continuous RSSI measurement control.} {\textbf{0b0} : stop RSSI measure (W) or RSSI measure stopped (R). \\ \textbf{0b1} : start RSSI measure (W) or RSSI measure running (R).}
+    \rff {2} {1} {CWEN} {0b0} {Continuous wave control.} {\textbf{0b0} : Stop continuous wave (W) or continuous wave stopped (R). \\ \textbf{0b1} : Start continuous wave (W) or continuous wave running (R).}
+    \rff {1} {1} {TTRG} {0b0} {Sigfox RFP Addon test mode trigger.} {\textbf{0b0} : no action (W) or no test mode pending (R). \\ \textbf{0b1} : start test mode (W) or test mode pending (R).}
+    \rff {0} {1} {STRG} {0b0} {Sigfox message trigger.} {\textbf{0b0} : no action (W) or no transmission pending (R). \\ \textbf{0b1} : send message (W) or message transmission pending (R).}
+}
+{Control register 1}
+{UHFM-CR1}
+
+\textbf{\underline{Note:}} Continuous RSSI measurement and continuous wave are performed on the RF frequency given by the \texttt{RADIO\_TEST\_0} register. Continuous wave power is given by the \texttt{RADIO\_TEST\_1} register.
+
+\newpage
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VRF\_RX[15:0]}}
+{\rmf{16}{|c|}{VRF\_TX[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VRF\_RX} {0xFFFF} {Radio front-end voltage in RX.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VRF\_TX} {0xFFFF} {Radio front-end voltage in TX.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{UHFM-ADR1}
+
+\paragraph{Sigfox EP ID register}
+
+\rmt
+{\rmf{8}{|c}{EP\_ID\_BYTE\_3[7:0]} & \rmf{8}{|c|}{EP\_ID\_BYTE\_2[7:0]}}
+{\rmf{8}{|c}{EP\_ID\_BYTE\_1[7:0]} & \rmf{8}{|c|}{EP\_ID\_BYTE\_0[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {EP\_ID\_BYTE\_3} {$ - $} {Byte 3 of the Sigfox end-point ID.} {$ - $}
+    \rff {23$\,-\,$16} {8} {EP\_ID\_BYTE\_2} {$ - $} {Byte 2 of the Sigfox end-point ID.} {$ - $}
+    \rff {15$\,-\,$8} {8} {EP\_ID\_BYTE\_1} {$ - $} {Byte 1 of the Sigfox end-point ID.} {$ - $}
+    \rff {7$\,-\,$0} {8} {EP\_ID\_BYTE\_0} {$ - $} {Byte 0 of the Sigfox end-point ID.} {$ - $}
+}
+{Sigfox EP ID register}
+{UHFM-SEPID}
+
+\newpage
+
+\paragraph{Sigfox UL payload register 0}
+
+\rmt
+{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_3[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_2[7:0]}}
+{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_1[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_0[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {UL\_PAYLOAD\_BYTE\_3} {0x00} {Byte 3 of the Sigfox uplink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {UL\_PAYLOAD\_BYTE\_2} {0x00} {Byte 2 of the Sigfox uplink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {UL\_PAYLOAD\_BYTE\_1} {0x00} {Byte 1 of the Sigfox uplink payload.}  {$ - $}
+    \rff {7$\,-\,$0} {8} {UL\_PAYLOAD\_BYTE\_0} {0x00} {Byte 0 of the Sigfox uplink payload.} {$ - $}
+}
+{Sigfox UL payload register 0}
+{UHFM-SULP0}
+
+\paragraph{Sigfox UL payload register 1}
+
+\rmt
+{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_7[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_6[7:0]}}
+{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_5[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_4[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {UL\_PAYLOAD\_BYTE\_7} {0x00} {Byte 7 of the Sigfox uplink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {UL\_PAYLOAD\_BYTE\_6} {0x00} {Byte 6 of the Sigfox uplink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {UL\_PAYLOAD\_BYTE\_5} {0x00} {Byte 5 of the Sigfox uplink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8}  {UL\_PAYLOAD\_BYTE\_4} {0x00} {Byte 4 of the Sigfox uplink payload.} {$ - $}
+}
+{Sigfox UL payload register 1}
+{UHFM-SULP1}
+
+\newpage
+
+\paragraph{Sigfox UL payload register 2}
+
+\rmt
+{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_11[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_10[7:0]}}
+{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_9[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_8[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {UL\_PAYLOAD\_BYTE\_11} {0x00} {Byte 11 of the Sigfox uplink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {UL\_PAYLOAD\_BYTE\_10} {0x00} {Byte 10 of the Sigfox uplink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {UL\_PAYLOAD\_BYTE\_9} {0x00} {Byte 9 of the Sigfox uplink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8} {UL\_PAYLOAD\_BYTE\_8} {0x00} {Byte 8 of the Sigfox uplink payload.} {$ - $}
+}
+{Sigfox UL payload register 2}
+{UHFM-SULP2}
+
+\newpage
+
+\paragraph{Sigfox DL payload register 0}
+
+\rmt
+{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_3[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_2[7:0]}}
+{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_1[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_0[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {DL\_PAYLOAD\_BYTE\_3} {0x00} {Byte 3 of the Sigfox downlink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {DL\_PAYLOAD\_BYTE\_2} {0x00} {Byte 2 of the Sigfox downlink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {DL\_PAYLOAD\_BYTE\_1} {0x00} {Byte 1 of the Sigfox downlink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8} {DL\_PAYLOAD\_BYTE\_0} {0x00} {Byte 0 of the Sigfox downlink payload.} {$ - $}
+}
+{Sigfox DL payload register 0}
+{UHFM-SDLP0}
+
+\paragraph{Sigfox DL payload register 1}
+
+\rmt
+{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_7[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_6[7:0]}}
+{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_5[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_4[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {DL\_PAYLOAD\_BYTE\_7} {0x00} {Byte 7 of the Sigfox downlink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {DL\_PAYLOAD\_BYTE\_6} {0x00} {Byte 6 of the Sigfox downlink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {DL\_PAYLOAD\_BYTE\_5} {0x00} {Byte 5 of the Sigfox downlink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8} {DL\_PAYLOAD\_BYTE\_4} {0x00} {Byte 4 of the Sigfox downlink payload.} {$ - $}
+}
+{Sigfox DL payload register 1}
+{UHFM-SDLP1}
+
+\newpage
+
+\paragraph{Radio test register 0}
+
+\rmt
+{\rmf{16}{|c|}{RF\_FREQUENCY[31:16]}}
+{\rmf{16}{|c|}{RF\_FREQUENCY[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$0} {32} {RF\_FREQUENCY} {0x33AD5EC0} {RF center frequency used for continuous wave, RSSI and downlink decoder.} {\textbf{Raw} value in $ Hz $. \\ (826000000 to 958000000)}
+}
+{Radio test register 0}
+{UHFM-RT0}
+
+\paragraph{Radio test register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{8}{|c}{RSSI[7:0]} & \rmf{8}{|c|}{TX\_POWER[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$8} {8} {RSSI} {0x00} {Radio RSSI read during continuous RSSI measurement.} {\reflink{Table}{rf-power-representation}}
+    \rff {7$\,-\,$0} {8} {TX\_POWER} {0xBC} {Radio TX power used during continuous wave.} {\reflink{Table}{rf-power-representation}}
+}
+{Radio test register 1}
+{UHFM-RT1}
+
+\newpage
+
+\subsubsection{GPSM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R} {GPSM-FR1} {Compilation flags.}
+    \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {GPSM-CFGR0} {Time and geo-location fix timeout.}
+    \rtl {0x0B} {CONFIGURATION\_1} {32} {R/W} {GPSM-CFGR1} {GPS timepulse output frequency.}
+    \rtl {0x0C} {CONFIGURATION\_2} {8} {R/W} {GPSM-CFGR2} {GPS timepulse output duty cycle.}
+    \rtl {0x0D} {STATUS\_1} {8} {R} {GPSM-SR1} {GPS status.}
+    \rtl {0x0E} {CONTROL\_1} {8} {R/W} {GPSM-CR1} {GPS control.}
+    \rtl {0x0F} {ANALOG\_DATA\_1} {32} {R} {GPSM-ADR1} {$ V_{GPS} $ and $ V_{ANT} $ voltages measurements.}
+    \rtl {0x10} {TIME\_DATA\_0} {32} {R} {GPSM-TDR0} {UTC date.}
+    \rtl {0x11} {TIME\_DATA\_1} {32} {R} {GPSM-TDR1} {UTC time.}
+    \rtl {0x12} {TIME\_DATA\_2} {16} {R} {GPSM-TDR2} {Time fix duration.}
+    \rtl {0x13} {GEOLOC\_DATA\_0} {32} {R} {GPSM-GDR0} {Latitude.}
+    \rtl {0x14} {GEOLOC\_DATA\_1} {32} {R} {GPSM-GDR1} {Longitude.}
+    \rtl {0x15} {GEOLOC\_DATA\_2} {16} {R} {GPSM-GDR2} {Altitude.}
+    \rtl {0x16} {GEOLOC\_DATA\_3} {32} {R} {GPSM-GDR3} {Geo-location fix duration, number of satellites and HDOP.}
+}
+{GPSM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{14}{|c} & \rmf{1}{|c}{BKFH} & \rmf{1}{|c|}{AAF}}
+
+\rft {
+    \rfu {31$\,-\,$2} {30} {0b0[30]}
+    \rff {1} {1} {BKFH} {$ - $} {GPS backup control mode (set at compilation level according to hardware).} {\textbf{0b0} : GPS backup signal controlled by the MCU. \\ \textbf{0b1} : GPS backup signal forced in hardware.}
+    \rff {0} {1} {AAF} {$ - $} {Active antenna flag (set at compilation level according to hardware).} {\textbf{0b0} : Active antenna disabled. \\ \textbf{0b1} : Active antenna enabled.}
+}
+{Flags register 1}
+{GPSM-FR1}
+
+\newpage
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmf{16}{|c|}{GEOLOC\_TIMEOUT[15:0]}}
+{\rmf{16}{|c|}{TIME\_TIMEOUT[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {GEOLOC\_TIMEOUT} {0x00B4} {Geo-location fix timeout.} {\textbf{Raw} value in $ s $.}
+    \rff {15$\,-\,$0} {16} {TIME\_TIMEOUT} {0x0078} {Time fix timeout.} {\textbf{Raw} value in $ s $.}
+}
+{Configuration register 0}
+{GPSM-CFGR0}
+
+\paragraph{Configuration register 1}
+
+\rmt
+{\rmf{16}{|c|}{FREQUENCY[31:16]}}
+{\rmf{16}{|c|}{FREQUENCY[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$0} {32} {FREQUENCY} {0x00989680} {Timepulse signal frequency.} {\textbf{Raw} value in $ Hz $. \\ (1 to 10000000)}
+}
+{Configuration register 1}
+{GPSM-CFGR1}
+
+\paragraph{Configuration register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{9}{|c} & \rmf{7}{|c|}{DUTY\_CYCLE[6:0]}}
+
+\rft {
+    \rfu {31$\,-\,$7} {25} {0b0[25]}
+    \rff {6$\,-\,$0} {7} {DUTY\_CYCLE} {0x32} {Timepulse signal duty cycle.} {\textbf{Raw} value in \% \\ (0 to 100)}
+}
+{Configuration register 2}
+{GPSM-CFGR2}
+
+\newpage
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{10}{|c} & \rmf{2}{|c}{BKENST} & \rmf{1}{|c}{PWST} & \rmf{1}{|c}{TPST} & \rmf{1}{|c}{GFS} & \rmf{1}{|c|}{TFS}}
+
+\rft {
+    \rfu {31$\,-\,$6} {26} {0b0[26]}
+    \rff {5$\,-\,$4} {2} {BKENST} {0b11} {GPS backup voltage status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : GPS backup disabled. \\ \textbf{0b01} : GPS backup enabled.}
+    \rff {3} {1} {PWST} {0b0} {GPS power supply status.} {{0b0} : GPS power supply is off. \\ \textbf{0b1} : GPS power supply is on.}
+    \rff {2} {1} {TPST} {0b0} {GPS timepulse status.} {\textbf{0b0} : GPS timepulse stopped. \\ \textbf{0b1} : GPS timepulse running.}
+    \rff {1} {1} {GFS} {0b0} {GPS geo-location fix status.} {\textbf{0b0} : timeout. \\ \textbf{0b1} : success.}
+    \rff {0} {1} {TFS} {0b0} {GPS time fix status.} {\textbf{0b0} : timeout. \\ \textbf{0b1} : success.}
+}
+{Status register 1}
+{GPSM-SR1}
+
+\newpage
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{10}{|c} & \rmf{1}{|c}{BKEN} & \rmf{1}{|c}{PWEN} & \rmf{1}{|c}{PWMD} & \rmf{1}{|c}{TPEN} & \rmf{1}{|c}{GTRG} & \rmf{1}{|c|}{TTRG}}
+
+\rft {
+    \rfu {31$\,-\,$6} {26} {0b0[26]}
+    \rff {5} {1} {BKEN} {0b0} {GPS backup voltage control.} {\textbf{0b0} : Turn GPS backup off. \\ \textbf{0b1} : Turn GPS backup on.}
+    \rff {4} {1} {PWEN} {0b0} {Direct control of the GPS power supply (only if \texttt{PWMD}$\,=\,$0b1).} {\textbf{0b0} : Turn GPS off. \\ \textbf{0b1} : Turn GPS on.}
+    \rff {3} {1} {PWMD} {0b0} {GPS power supply control mode.} {\textbf{0b0} : GPS power supply is automatically controlled by software. \\ \textbf{0b1} : GPS power supply is controlled by the \texttt{PWEN} bit.}
+    \rff {2} {1} {TPEN} {0b0} {GPS timepulse output control.} {\textbf{0b0} : Disable GPS timepulse. \\ \textbf{0b1} : Enable GPS timepulse.}
+    \rff {1} {1} {GTRG} {0b0} {GPS geo-location fix trigger.} {\textbf{0b0} : no action (W) or no geo-location fix pending (R). \\ \textbf{0b1} : Perform geo-location fix (W) or geo-location fix pending (R).}
+    \rff {0} {1} {TTRG} {0b0} {GPS time fix trigger.} {\textbf{0b0} : no action (W) or no time fix pending (R). \\ \textbf{0b1} : Perform time fix (W) or time fix pending (R).}
+}
+{Control register 1}
+{GPSM-CR1}
+
+\textbf{\underline{Note:}} Time and geo-location fix timeouts are given by the \texttt{CONFIGURATION\_1} register.
+\medskip \\
+\textbf{\underline{Note:}} Timepulse signal settings are given by the \texttt{CONFIGURATION\_2} and \texttt{CONFIGURATION\_3} registers. \pfs
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VANT[15:0]}}
+{\rmf{16}{|c|}{VGPS[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VANT} {0xFFFF} {Active antenna voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VGPS} {0xFFFF} {GPS module voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{GPSM-ADR1}
+
+\newpage
+
+\paragraph{Time data register 0}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{YEAR[7:0]}}
+{\rmu{4}{|c} & \rmf{4}{|c}{MONTH[3:0]} & \rmf{5}{|c}{DATE[4:0]} & \rmf{3}{|c|}{DAY[2:0]}}
+
+\rft {
+    \rfu {31$\,-\,$24} {12} {0x000}
+    \rff {23$\,-\,$16} {8} {YEAR} {0x00} {UTC year.} {\reflink{Table}{year-representation}}
+    \rfu {15$\,-\,$12} {4} {0b0000}
+    \rff {11$\,-\,$8} {4} {MONTH} {0b0000} {UTC month.} {\textbf{Raw} value ($ 1 - 12 $)}
+    \rff {7$\,-\,$3} {5} {DATE} {0b00000} {UTC date.} {\textbf{Raw} value ($ 1 - 31 $)}
+    \rff {2$\,-\,$0} {3} {DAY} {0b000} {UTC week day \\ \textcolor{Red}{(not supported yet)}.} {\textbf{0b000} : Monday. \\ \textbf{0b001} : Tuesday. \\ \textbf{0b010} : Wednesday. \\ \textbf{0b011} : Thursday. \\ \textbf{0b100} : Friday. \\ \textbf{0b101} : Saturday. \\ \textbf{0b110} : Sunday. \\ \textbf{0b111} : \textcolor{Green}{unused}.}
+}
+{Time data register 0}
+{GPSM-TDR0}
+
+\paragraph{Time data register 1}
+
+\rmt
+{\rmu{11}{|c} & \rmf{5}{|c|}{HOUR[4:0]}}
+{\rmu{2}{|c} & \rmf{6}{|c}{MINUTE[5:0]} & \rmu{2}{|c} & \rmf{6}{|c|}{SECOND[5:0]}}
+
+\rft {
+    \rfu {31$\,-\,$21} {11} {0b0[11]}
+    \rff {20$\,-\,$16} {5} {HOUR} {0b00000} {UTC hour.} {\textbf{Raw} value ($ 0 - 23 $)}
+    \rfu {15$\,-\,$14} {2} {0b00}
+    \rff {13$\,-\,$8} {6} {MINUTE} {00b000000} {UTC minute.} {\textbf{Raw} value ($ 0 - 59 $)}
+    \rfu {7$\,-\,$6} {2} {0b00}
+    \rff {5$\,-\,$0} {6} {SECOND} {0b000000} {UTC second.} {\textbf{Raw} value ($ 0 - 59 $)}
+}
+{Time data register 1}
+{GPSM-TDR1}
+
+\newpage
+
+\paragraph{Time data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{FIX\_DURATION[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {FIX\_DURATION} {0x0000} {Time fix duration.} {\textbf{Raw} value in $ s $.}
+}
+{Time data register 2}
+{GPSM-TDR2}
+
+\paragraph{Geo-location data register 0}
+
+\rmt
+{\rmf{1}{|c}{NF} & \rmf{15}{|c|}{SECOND[16:2]}}
+{\rmf{2}{|c}{SECOND[1:0]} & \rmf{6}{|c}{MINUTE[5:0]} & \rmf{8}{|c|}{DEGREE[7:0]}}
+
+\rft {
+    \rff {31} {1} {NF} {0b0} {Latitude north flag.} {\textbf{0b0} : south. \\ \textbf{0b1} : north.}
+    \rff {30$\,-\,$14} {17} {SECOND} {0b0[17]} {Second of latitude.} {Fractional part of minutes $\times 100000$ \\ seconds $["] = (\,\texttt{SECOND}\,/\,100000\,) \times 60$}
+    \rff {13$\,-\,$8} {6} {MINUTE} {0b000000} {Minute of latitude.} {\textbf{Raw} value in '}
+    \rff {7$\,-\,$0} {8} {DEGREE} {0x00} {Degree of latitude.} {\textbf{Raw} value in $ ^{\circ} $}
+}
+{Geo-location data register 0}
+{GPSM-GDR0}
+
+\newpage
+
+\paragraph{Geo-location data register 1}
+
+\rmt
+{\rmf{1}{|c}{EF} & \rmf{15}{|c|}{SECOND[16:2]}}
+{\rmf{2}{|c}{SECOND[1:0]} & \rmf{6}{|c}{MINUTE[5:0]} & \rmf{8}{|c|}{DEGREE[7:0]}}
+
+\rft {
+    \rff {31} {1} {EF} {0b0} {Longitude east flag.} {\textbf{0b0} : west. \\ \textbf{0b1} : east.}
+    \rff {30$\,-\,$14} {17} {SECOND} {0b0[17]} {Second of longitude.} {Fractional part of minutes $\times 100000$ \\ seconds $["] = (\,\texttt{SECOND}\,/\,100000\,) \times 60$}
+    \rff {13$\,-\,$8} {6} {MINUTE} {0b000000} {Minute of longitude.} {\textbf{Raw} value in '}
+    \rff {7$\,-\,$0} {8} {DEGREE} {0x00}  {Degree of longitude.} {\textbf{Raw} value in $ ^{\circ} $}
+}
+{Geo-location data register 1}
+{GPSM-GDR1}
+
+\paragraph{Geo-location data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{ALTITUDE[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {ALTITUDE} {0x0000} {Altitude.}  {\textbf{Raw} value in $ m $}
+}
+{Geo-location data register 2}
+{GPSM-GDR2}
+
+\paragraph{Geo-location data register 3}
+
+\rmt
+{\rmf{12}{|c}{HDOP[11:0]} & \rmf{4}{|c|}{NSAT[3:0]}}
+{\rmf{16}{|c|}{FIX\_DURATION[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$20} {12} {HDOP} {0x000} {Horizontal precision.} {\textbf{Raw} value $ \times\,100 $ }
+    \rff {19$\,-\,$16} {4} {NSAT} {0b0000} {Number of satellites.} {\textbf{Raw} value}
+    \rff {15$\,-\,$0} {16} {FIX\_DURATION} {0x0000} {Position fix duration.} {\textbf{Raw} value in $ s $.}
+}
+{Geo-location data register 3}
+{GPSM-GDR3}
+
+\newpage
+
+\subsubsection{SM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R} {SM-FR1} {Compilation flags.}
+    \rtl {0x0A} {FLAGS\_2} {32} {R} {SM-FR2} {$ V_{AIN0} $ and $ V_{AIN1} $ front--end configuration.}
+    \rtl {0x0B} {FLAGS\_3} {32} {R} {SM-FR3} {$ V_{AIN2} $ and $ V_{AIN3} $ front--end configuration.}
+    \rtl {0x0C} {ANALOG\_DATA\_1} {32} {R} {SM-ADR1} {$ V_{AIN0} $ and $ V_{AIN1} $ voltages measurements.}
+    \rtl {0x0D} {ANALOG\_DATA\_2} {32} {R} {SM-ADR2} {$ V_{AIN2} $ and $ V_{AIN3} $ voltages measurements.}
+    \rtl {0x0E} {ANALOG\_DATA\_3} {16} {R} {SM-ADR3} {$ T_{amb} $ and $ H_{amb} $ measurements.}
+    \rtl {0x0F} {DIGITAL\_DATA} {8} {R} {SM-DDR} {Digital inputs measurements.}
+}
+{SM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{13}{|c} & \rmf{1}{|c}{DIGF} & \rmf{1}{|c}{DIOF} & \rmf{1}{|c|}{AINF}}
+
+\rft {
+    \rfu {31$\,-\,$3} {29} {0b0[29]}
+    \rff {2} {1} {DIGF} {$ - $} {Digital sensors enable flag.} {\textbf{0b0} : digital sensors disabled. \\ \textbf{0b1} : digital sensors enabled.}
+    \rff {1} {1} {DIOF} {$ - $} {Digital inputs enable flag.} {\textbf{0b0} : digital inputs disabled. \\ \textbf{0b1} : digital inputs enabled.}
+    \rff {0} {1} {AINF} {$ - $} {Analog inputs enable flag.} {\textbf{0b0} : analog inputs disabled. \\ \textbf{0b1} : analog inputs enabled.}
+}
+{Flags register 1}
+{SM-FR1}
+
+\newpage
+
+\paragraph{Flags register 2}
+
+\rmt
+{\rmf{1}{|c}{AI1T} & \rmf{15}{|c|}{AI1G[15:0]}}
+{\rmf{1}{|c}{AI0T} & \rmf{15}{|c|}{AI0G[15:0]}}
+
+\rft {
+    \rff {31} {1} {AI1T} {$ - $} {$ V_{AIN1} $ conversion type (set at compilation step according to hardware).} {\textbf{0b0} : attenuation. \\ \textbf{0b1} : amplification.}
+    \rff {30$\,-\,$16} {15} {AI1G} {$ - $} {$ V_{AIN1} $ conversion gain (set at compilation step according to hardware).} {\textbf{Raw value} expressed as: \medskip \\ $ \dfrac{V_{AIN1}}{V_{ADC}} $ for attenuation. \medskip \\ $ \dfrac{V_{ADC}}{V_{AIN1}} $ for amplification. \medskip}
+    \rff {15} {1} {AI0T} {$ - $} {$ V_{AIN0} $ conversion type (set at compilation step according to hardware).} {\textbf{0b0} : attenuation. \\ \textbf{0b1} : amplification.}
+    \rff {14$\,-\,$0} {15} {AI0G} {$ - $} {$ V_{AIN0} $ conversion gain (set at compilation step according to hardware).} {\textbf{Raw value} expressed as: \medskip \\ $ \dfrac{V_{AIN0}}{V_{ADC}} $ for attenuation. \medskip \\ $ \dfrac{V_{ADC}}{V_{AIN0}} $ for amplification. \medskip}
+}
+{Flags register 2}
+{SM-FR2}
+
+\newpage
+
+\paragraph{Flags register 3}
+
+\rmt
+{\rmf{1}{|c}{AI3T} & \rmf{15}{|c|}{AI3G[15:0]}}
+{\rmf{1}{|c}{AI2T} & \rmf{15}{|c|}{AI2G[15:0]}}
+
+\rft {
+    \rff {31} {1} {AI1T} {$ - $} {$ V_{AIN3} $ conversion type (set at compilation step according to hardware).} {\textbf{0b0} : attenuation. \\ \textbf{0b1} : amplification.}
+    \rff {30$\,-\,$16} {15} {AI1G} {$ - $} {$ V_{AIN3} $ conversion gain (set at compilation step according to hardware).} {\textbf{Raw value} expressed as: \medskip \\ $ \dfrac{V_{AIN3}}{V_{ADC}} $ for attenuation. \medskip \\ $ \dfrac{V_{ADC}}{V_{AIN3}} $ for amplification. \medskip}
+    \rff {15} {1} {AI0T} {$ - $} {$ V_{AIN2} $ conversion type (set at compilation step according to hardware).} {\textbf{0b0} : attenuation. \\ \textbf{0b1} : amplification.}
+    \rff {14$\,-\,$0} {15} {AI0G} {$ - $} {$ V_{AIN2} $ conversion gain (set at compilation step according to hardware).} {\textbf{Raw value} expressed as: \medskip \\ $ \dfrac{V_{AIN2}}{V_{ADC}} $ for attenuation. \medskip \\ $ \dfrac{V_{ADC}}{V_{AIN2}} $ for amplification. \medskip}
+}
+{Configuration register 3}
+{SM-FR3}
+
+\newpage
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VAIN1[15:0]}}
+{\rmf{16}{|c|}{VAIN0[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VAIN1} {0xFFFF} {$ V_{AIN1} $ voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VAIN0} {0xFFFF} {$ V_{AIN0} $ voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{SM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmf{16}{|c|}{VAIN3[15:0]}}
+{\rmf{16}{|c|}{VAIN2[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VAIN3} {0xFFFF} {$ V_{AIN3} $ voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VAIN2} {0xFFFF} {$ V_{AIN2} $ voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 2}
+{SM-ADR2}
+
+\paragraph{Analog data register 3}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{8}{|c}{HAMB[7:0]} & \rmf{8}{|c|}{TAMB[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$8} {8} {HAMB} {0xFF} {Ambient humidity.} {\textbf{Raw} value in \%.}
+    \rff {7$\,-\,$0} {8} {TAMB} {0x7F} {Ambient temperature.} {\reflink{Table}{temperature-representation}}
+}
+{Analog data register 3}
+{SM-ADR3}
+
+\newpage
+
+\paragraph{Digital data register}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{8}{|c} & \rmf{2}{|c}{DIO3} & \rmf{2}{|c}{DIO2} & \rmf{2}{|c}{DIO1} & \rmf{2}{|c|}{DIO0}}
+
+\rft {
+    \rfu {31$\,-\,$8} {24} {0x000000}
+    \rff {7$\,-\,$6} {2} {DIO3} {0b11} {Digital input 3 state.} {\reflink{Table}{bit-representation} \\ \textbf{0b0} : low level \\ \textbf{0b1} : high level}
+    \rff {5$\,-\,$4} {2} {DIO2} {0b11} {Digital input 2 state.} {\reflink{Table}{bit-representation} \\ \textbf{0b0} : low level \\ \textbf{0b1} : high level}
+    \rff {3$\,-\,$2} {2} {DIO1} {0b11} {Digital input 1 state.} {\reflink{Table}{bit-representation} \\ \textbf{0b0} : low level \\ \textbf{0b1} : high level}
+    \rff {1$\,-\,$0} {2} {DIO0} {0b11} {Digital input 0 state.} {\reflink{Table}{bit-representation} \\ \textbf{0b0} : low level \\ \textbf{0b1} : high level}
+}
+{Digital data register}
+{SM-DDR}
+
+\newpage
+
+\subsubsection{RRM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R} {RRM-FR1} {Compilation flags.}
+    \rtl {0x0A} {CONFIGURATION\_0} {16} {R/W} {RRM-CFGR0} {$ I_{OUT} $ offset calibration value.}
+    \rtl {0x0B} {STATUS\_1} {8} {R} {RRM-SR1} {Regulator status.}
+    \rtl {0x0C} {CONTROL\_1} {8} {R/W} {RRM-CR1} {Regulator control.}
+    \rtl {0x0D} {ANALOG\_DATA\_1} {32} {R} {RRM-ADR1} {$ V_{IN} $ and $ V_{OUT} $ voltages measurements.}
+    \rtl {0x0E} {ANALOG\_DATA\_2} {16} {R} {RRM-ADR2} {$ I_{OUT} $ current measurement.}
+}
+{RRM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{RFH}}
+
+\rft {
+    \rfu {31$\,-\,$1} {31} {0b0[31]}
+    \rff {0} {1} {RFH} {$ - $} {Regulator control mode (set at compilation step according to hardware).} {\textbf{0b0} : Regulator controlled by the MCU. \\ \textbf{0b1} : Regulator controlled by hardware.}
+}
+{Flags register 1}
+{RRM-FR1}
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{IOUT\_OFFSET[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {IOUT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
+}
+{Configuration register 0}
+{RRM-CFGR0}
+
+\newpage
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{14}{|c} & \rmf{2}{|c|}{RENST}}
+
+\rft {
+    \rfu {31$\,-\,$2} {30} {0b0[30]}
+    \rff {1$\,-\,$0} {2} {RENST} {0b11} {Regulator state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : Regulator output disabled. \\ \textbf{0b01} : Regulator output enabled.}
+}
+{Status register 1}
+{RRM-SR1}
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{REN}}
+
+\rft {
+    \rfu {31$\,-\,$1} {31} {0b0[31]}
+    \rff {0} {1} {REN} {0b0} {Regulator state control.} {\textbf{0b0} : disable regulator output. \\ \textbf{0b1} : enable regulator output.}
+}
+{Control register 1}
+{RRM-CR1}
+
+\newpage
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VOUT[15:0]}}
+{\rmf{16}{|c|}{VIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VOUT} {0xFFFF} {Regulator output voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VIN} {0xFFFF} {Regulator input voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{RRM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{IOUT[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {IOUT} {0xFFFF} {Regulator output current.} {\reflink{Table}{current-representation}}
+}
+{Analog data register 2}
+{RRM-ADR2}
+
+\newpage
+
+\subsubsection{DMM specific registers set}
+
+\rtt {
+    \rtl {0x09} {CONFIGURATION\_0} {32} {R/W} {DMM-CFGR0} {Radio monitoring and nodes scan periods.}
+    \rtl {0x0A} {STATUS\_1} {8} {R} {DMM-SR1} {Nodes count.}
+    \rtl {0x0B} {CONTROL\_1} {8} {R/W} {DMM-CR1} {Nodes scan trigger flag.}
+    \rtl {0x0C} {ANALOG\_DATA\_1} {32} {R} {DMM-ADR1} {$ V_{RS} $ and $ V_{HMI} $ voltages measurements.}
+    \rtl {0x0D} {ANALOG\_DATA\_2} {16} {R} {DMM-ADR2} {$ V_{USB} $ voltage measurement.}
+}
+{DMM specific registers set}
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{SIGFOX\_DL\_PERIOD[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PERIOD[7:0]} & \rmf{8}{|c|}{NODES\_SCAN\_PERIOD[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_DL\_PERIOD} {$ - $} {Remote control period.} {\reflink{Table}{time-representation}}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_UL\_PERIOD} {$ - $} {Remote monitoring period.} {\reflink{Table}{time-representation}}
+    \rff {7$\,-\,$0} {8} {NODES\_SCAN\_PERIOD} {$ - $} {Automatic nodes scan period.} {\reflink{Table}{time-representation}}
+}
+{Configuration register 0}
+{DMM-CFGR0}
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{NODES\_COUNT[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$8} {24} {0x000000}
+    \rff {7$\,-\,$0} {8} {NODES\_COUNT} {$ - $} {Number of nodes connected on the bus.} {\textbf{Raw} value.}
+}
+{Status register 1}
+{DMM-SR1}
+
+\newpage
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{STRG}}
+
+\rft {
+    \rfu {31$\,-\,$1} {31} {0b0[31]}
+    \rff {0} {1} {STRG} {0b0} {Nodes scan trigger flag.} {\textbf{0b0} : no action. \\ \textbf{0b1} : start nodes scan. The bit is automatically cleared after the operation.}
+}
+{Control register 1}
+{DMM-CR1}
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VHMI[15:0]}}
+{\rmf{16}{|c|}{VRS[15:0]}}
+
+\rft { \rfh
+    \rff {31$\,-\,$16} {16} {VHMI} {0xFFFF} {HMI voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VRS} {0xFFFF} {RS485 bus power supply rail.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{DMM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{VUSB[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {VUSB} {0xFFFF} {USB voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 2}
+{DMM-ADR2}
+
+\newpage
+
+\subsubsection{MPMCM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {16} {R} {MPMCM-FR1} {Transformer attenuation ratio.}
+    \rtl {0x0A} {FLAGS\_2} {32} {R} {MPMCM-FR2} {Current sensors attenuation ratio.}
+    \rtl {0x0B} {CONFIGURATION\_0} {16} {R/W} {MPMCM-CFGR0} {Transformer gain.}
+    \rtl {0x0C} {CONFIGURATION\_1} {32} {R/W} {MPMCM-CFGR1} {CH1 and CH2 current sensors gain.}
+    \rtl {0x0D} {CONFIGURATION\_2} {32} {R/W} {MPMCM-CFGR2} {CH3 and CH4 current sensors gain.}
+    \rtl {0x0E} {CONFIGURATION\_3} {8} {R/W} {MPMCM-CFGR3} {Linky TIC sampling period.}
+    \rtl {0x0F} {STATUS\_1} {8} {R} {MPMCM-SR1} {AC channels measurements status.}
+    \rtl {0x10} {CONTROL\_1} {8} {R/W} {MPMCM-CR1} {AC channels measurements control.}
+    \rtl {0x11} {MAINS\_FREQUENCY\_0} {32} {R} {MPMCM-MFR0} {Run and averaged mains frequency.}
+    \rtl {0x12} {MAINS\_FREQUENCY\_1} {32} {R} {MPMCM-MFR1} {Min and max mains frequency.}
+    \rtl {0x13} {CH1\_ACTIVE\_POWER\_0} {32} {R} {MPMCM-CHxACPR0} {CH1 run and averaged active power.}
+    \rtl {0x14} {CH1\_ACTIVE\_POWER\_1} {32} {R} {MPMCM-CHxACPR1} {CH1 min and max active power.}
+    \rtl {0x15} {CH1\_RMS\_VOLTAGE\_0} {32} {R} {MPMCM-CHxRVR0} {CH1 run and averaged RMS voltage.}
+    \rtl {0x16} {CH1\_RMS\_VOLTAGE\_1} {32} {R} {MPMCM-CHxRVR1} {CH1 min and max RMS voltage;}
+    \rtl {0x17} {CH1\_RMS\_CURRENT\_0} {32} {R} {MPMCM-CHxRCR0} {CH1 run and averaged RMS current.}
+    \rtl {0x18} {CH1\_RMS\_CURRENT\_1} {32} {R} {MPMCM-CHxRCR1} {CH1 min and max RMS current.}
+    \rtl {0x19} {CH1\_APPARENT\_POWER\_0} {32} {R} {MPMCM-CHxAPPR0} {CH1 run and averaged apparent power.}
+    \rtl {0x1A} {CH1\_APPARENT\_POWER\_1} {32} {R} {MPMCM-CHxAPPR1} {CH1 min and max apparent power.}
+    \rtl {0x1B} {CH1\_POWER\_FACTOR\_0} {32} {R} {MPMCM-CHxPFR0} {CH1 run and averaged power factor.}
+    \rtl {0x1C} {CH1\_POWER\_FACTOR\_1} {32} {R} {MPMCM-CHxPFR1} {CH1 min and max power factor.}
+    \rtl {0x1D} {CH1\_ENERGY} {32} {R} {MPMCM-CHxER} {CH1 cumulated active and apparent energy.}
+    \tl\centering\cellcolor{Lavender}\textbf{0x1E $-$ 0x28} & \multicolumn{5}{c|}{\textit{Same for} \texttt{CH2}} \tabularnewline
+    \tl\centering\cellcolor{Lavender}\textbf{0x29 $-$ 0x33} & \multicolumn{5}{c|}{\textit{Same for} \texttt{CH3}} \tabularnewline
+    \tl\centering\cellcolor{Lavender}\textbf{0x34 $-$ 0x3E} & \multicolumn{5}{c|}{\textit{Same for} \texttt{CH4}} \tabularnewline
+    \tl\centering\cellcolor{Lavender}\textbf{0x3F $-$ 0x49} & \multicolumn{5}{c|}{\textit{Same for} \texttt{TIC}} \tabularnewline
+}
+{MPMCM specific registers set}
+
+\bigskip
+\textbf{\underline{Note:}} As far as active power, apparent power and power factor are concerned, when the sign changes during the accumulation period (switch between production and consumption modes), the maximum and minimum values correspond to the absolute minimum value and absolute maximum value observed during the accumulation period.
+
+\newpage
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{8}{|c}{TRANSFORMER\_ATTEN[7:0]} & \rmu{5}{|c} & \rmf{1}{|c}{LTM} & \rmf{1}{|c}{LTE} & \rmf{1}{|c|}{AME}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$8} {8} {TRANSFORMER\_ATTEN} {$ - $} {Transformer attenuation ratio (set at compilation step according to hardware).} {\textbf{Raw} value in $ V/V $.}
+    \rfu {7$\,-\,$3} {5} {0b0[5]}
+    \rff {2} {1} {LTM} {$ - $} {Linky TIC mode.} {\textbf{0b0} : Historic mode. \\ \textbf{0b1} : Standard mode.}
+    \rff {1} {1} {LTE} {$ - $} {Linky TIC interface enable flag.} {\textbf{0b0} : Linky TIC interface disabled. \\ \textbf{0b1} : Linky TIC interface enabled.}
+    \rff {0} {1} {AME} {$ - $} {Analog measure enable.} {\textbf{0b0} : Analog measure disabled. \\ \textbf{0b1} : Analog measure enabled.}
+}
+{Flags register 1}
+{MPMCM-FR1}
+
+\newpage
+
+\paragraph{Flags register 2}
+
+\rmt
+{\rmf{8}{|c}{CH4\_CURRENT\_SENSOR\_ATTEN[7:0]} & \rmf{8}{|c|}{CH3\_CURRENT\_SENSOR\_ATTEN[7:0]}}
+{\rmf{8}{|c}{CH2\_CURRENT\_SENSOR\_ATTEN[7:0]} & \rmf{8}{|c|}{CH1\_CURRENT\_SENSOR\_ATTEN[7:0]}}
+
+\rft {
+    \rff {31$\,-\,$24} {8} {CH4 \\ CURRENT\_SENSOR\_ATTEN} {$ - $} {CH4 current sensor attenuation ratio (set at compilation step according to hardware).} {\textbf{Raw} value in $ V/V $.}
+    \rff {23$\,-\,$16} {8} {CH3 \\ CURRENT\_SENSOR\_ATTEN} {$ - $} {CH3 current sensor attenuation ratio (set at compilation step according to hardware).} {\textbf{Raw} value in $ V/V $.}
+    \rff {15$\,-\,$8} {8} {CH2 \\ CURRENT\_SENSOR\_ATTEN} {$ - $} {CH2 current sensor attenuation ratio (set at compilation step according to hardware).} {\textbf{Raw} value in $ V/V $.}
+    \rff {7$\,-\,$0} {8} {CH1 \\ CURRENT\_SENSOR\_ATTEN} {$ - $} {CH1 current sensor attenuation ratio (set at compilation step according to hardware).} {\textbf{Raw} value in $ V/V $.}
+}
+{Flags register 2}
+{MPMCM-FR2}
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{16}{|c|}{TRANSFORMER\_GAIN[15:0]}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$0} {16} {TRANSFORMER\_GAIN} {$ - $} {Transformer gain (between primary and secondary).} {\textbf{Raw} value in $ 10 \times V/V $.}
+}
+{Configuration register 0}
+{MPMCM-CFGR0}
+
+\newpage
+
+\paragraph{Configuration register 1}
+
+\rmt
+{\rmf{16}{|c|}{CH2\_CURRENT\_SENSOR\_GAIN[15:0]}}
+{\rmf{16}{|c|}{CH1\_CURRENT\_SENSOR\_GAIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CH2 \\ CURRENT\_SENSOR\_GAIN} {$ - $} {CH2 current sensor gain.} {\textbf{Raw} value in $ 10 \times A/V $.}
+    \rff {15$\,-\,$0} {16} {CH1 \\ CURRENT\_SENSOR\_GAIN} {$ - $} {CH1 current sensor gain.} {\textbf{Raw} value in $ 10 \times A/V $.}
+}
+{Configuration register 1}
+{MPMCM-CFGR1}
+
+\paragraph{Configuration register 2}
+
+\rmt
+{\rmf{16}{|c|}{CH4\_CURRENT\_SENSOR\_GAIN[15:0]}}
+{\rmf{16}{|c|}{CH3\_CURRENT\_SENSOR\_GAIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CH4 \\ CURRENT\_SENSOR\_GAIN} {$ - $} {CH4 current sensor gain.} {\textbf{Raw} value in $ 10 \times A/V $.}
+    \rff {15$\,-\,$0} {16} {CH3 \\ CURRENT\_SENSOR\_GAIN} {$ - $} {CH3 current sensor gain.} {\textbf{Raw} value in $ 10 \times A/V $.}
+}
+{Configuration register 2}
+{MPMCM-CFGR2}
+
+\paragraph{Configuration register 3}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{TIC\_SAMPLING\_PERIOD[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$8} {24} {0x000000}
+    \rff {7$\,-\,$0} {8} {TIC\_SAMPLING\_PERIOD} {$ - $} {Linky TIC sampling period.} {\reflink{Table}{time-representation}}
+}
+{Configuration register 3}
+{MPMCM-CFGR3}
+
+\newpage
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{10}{|c} & \rmf{1}{|c}{MVD} & \rmf{1}{|c}{TICD} & \rmf{1}{|c}{CH4D} & \rmf{1}{|c}{CH3D} & \rmf{1}{|c}{CH2D} & \rmf{1}{|c|}{CH1D}}
+
+\rft {
+    \rfu {31$\,-\,$6} {26} {0b0[26]}
+    \rff {5} {1} {MVD} {0b0} {Mains voltage detect flag.} {\textbf{0b0} : mains voltage not detected \\ \textbf{0b1} : mains voltage detected}
+    \rff {4} {1} {TICD} {0b0} {Linky TIC detect flag.} {\textbf{0b0} : Linky TIC not detected \\ \textbf{0b1} : Linky TIC detected}
+    \rff {3} {1} {CH4D} {0b0} {AC channel 4 current sensor detect flag.} {\textbf{0b0} : sensor not connected \\ \textbf{0b1} : sensor connected}
+    \rff {2} {1} {CH3D} {0b0} {AC channel 3 current sensor detect flag.} {\textbf{0b0} : sensor not connected \\ \textbf{0b1} : sensor connected}
+    \rff {1} {1} {CH2D} {0b0} {AC channel 2 current sensor detect flag.} {\textbf{0b0} : sensor not connected \\ \textbf{0b1} : sensor connected}
+    \rff {0} {1} {CH1D} {0b0} {AC channel 1 current sensor detect flag.} {\textbf{0b0} : sensor not connected \\ \textbf{0b1} : sensor connected}
+}
+{Status register 1}
+{MPMCM-SR1}
+
+\newpage
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{10}{|c} & \rmf{1}{|c}{FRQS} & \rmf{1}{|c}{TICS} & \rmf{1}{|c}{CH4S} & \rmf{1}{|c}{CH3S} & \rmf{1}{|c}{CH2S} & \rmf{1}{|c|}{CH1S}}
+
+\rft {
+    \rfu {31$\,-\,$6} {26} {0b0[26]}
+    \rff {5} {1} {FRQS} {0b0} {Mains frequency measurements control.} {\textbf{0b0} : no action \\ \textbf{0b1} : store frequency measurements in registers and reset them}
+    \rff {4} {1} {TICS} {0b0} {TIC measurements control.} {\textbf{0b0} : no action \\ \textbf{0b1} : store TIC measurements in registers and reset them}
+    \rff {3} {1} {CH4S} {0b0} {AC channel 4 measurements control.} {\textbf{0b0} : no action \\ \textbf{0b1} : store all CH4 measurements in registers and reset them}
+    \rff {2} {1} {CH3S} {0b0} {AC channel 3 measurements control.} {\textbf{0b0} : no action \\ \textbf{0b1} : store all CH3 measurements in registers and reset them}
+    \rff {1} {1} {CH2S} {0b0} {AC channel 2 measurements control.} {\textbf{0b0} : no action \\ \textbf{0b1} : store all CH2 measurements in registers and reset them}
+    \rff {0} {1} {CH1S} {0b0} {AC channel 1 measurements control.} {\textbf{0b0} : no action \\ \textbf{0b1} : store all CH1 measurements in registers and reset them}
+}
+{Control register 1}
+{MPMCM-CR1}
+
+\newpage
+
+\paragraph{Mains frequency register 0}
+
+\rmt
+{\rmf{16}{|c|}{MAINS\_FREQUENCY\_MEAN[15:0]}}
+{\rmf{16}{|c|}{MAINS\_FREQUENCY\_RUN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {MAINS\_FREQUENCY\_MEAN} {0xFFFF} {Averaged value of mains frequency since last measurements reset.} {\textbf{Raw} value in $ cHz $.}
+    \rff {15$\,-\,$0} {16} {MAINS\_FREQUENCY\_RUN} {0xFFFF} {Averaged value of mains frequency during last second.} {\textbf{Raw} value in $ cHz $.}
+}
+{Mains frequency register 0}
+{MPMCM-MFR0}
+
+\paragraph{Mains frequency register 1}
+
+\rmt
+{\rmf{16}{|c|}{MAINS\_FREQUENCY\_MAX[15:0]}}
+{\rmf{16}{|c|}{MAINS\_FREQUENCY\_MIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {MAINS\_FREQUENCY\_MAX} {0xFFFF} {Maximum value of mains frequency since last measurements reset.} {\textbf{Raw} value in $ cHz $.}
+    \rff {15$\,-\,$0} {16} {MAINS\_FREQUENCY\_MIN} {0xFFFF} {Minimum value of mains frequency since last measurements reset.} {\textbf{Raw} value in $ cHz $.}
+}
+{Mains frequency register 1}
+{MPMCM-MFR1}
+
+\newpage
+
+\paragraph{CHx active power register 0}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_ACTIVE\_POWER\_MEAN[15:0]}}
+{\rmf{16}{|c|}{CHx\_ACTIVE\_POWER\_RUN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_ACTIVE\_POWER\_MEAN} {0x7FFF} {Averaged value of active power since last measurements reset.} {\reflink{Table}{electrical-power-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_ACTIVE\_POWER\_RUN} {0x7FFF} {Averaged value of active power during last second.} {\reflink{Table}{electrical-power-representation}}
+}
+{CHx active power register 0}
+{MPMCM-CHxACPR0}
+
+\paragraph{CHx active power register 1}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_ACTIVE\_POWER\_MAX[15:0]}}
+{\rmf{16}{|c|}{CHx\_ACTIVE\_POWER\_MIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_ACTIVE\_POWER\_MAX} {0x7FFF} {Maximum value of active power since last measurements reset.} {\reflink{Table}{electrical-power-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_ACTIVE\_POWER\_MIN} {0x7FFF} {Minimum value of active power since last measurements reset.} {\reflink{Table}{electrical-power-representation}}
+}
+{CHx active power register 1}
+{MPMCM-CHxACPR1}
+
+\newpage
+
+\paragraph{CHx RMS voltage register 0}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_RMS\_VOLTAGE\_MEAN[15:0]}}
+{\rmf{16}{|c|}{CHx\_RMS\_VOLTAGE\_RUN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_RMS\_VOLTAGE\_MEAN} {0xFFFF} {Averaged value of RMS voltage since last measurements reset.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_RMS\_VOLTAGE\_RUN} {0xFFFF} {Averaged value of RMS voltage during last second.} {\reflink{Table}{voltage-representation}}
+}
+{CHx RMS voltage register 0}
+{MPMCM-CHxRVR0}
+
+\paragraph{CHx RMS voltage register 1}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_RMS\_VOLTAGE\_MAX[15:0]}}
+{\rmf{16}{|c|}{CHx\_RMS\_VOLTAGE\_MIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_RMS\_VOLTAGE\_MAX} {0xFFFF} {Maximum value of RMS voltage since last measurements reset.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_RMS\_VOLTAGE\_MIN} {0xFFFF} {Minimum value of RMS voltage since last measurements reset.} {\reflink{Table}{voltage-representation}}
+}
+{CHx RMS voltage register 1}
+{MPMCM-CHxRVR1}
+
+\newpage
+
+\paragraph{CHx RMS current register 0}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_RMS\_CURRENT\_MEAN[15:0]}}
+{\rmf{16}{|c|}{CHx\_RMS\_CURRENT\_RUN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_RMS\_CURRENT\_MEAN} {0xFFFF} {Averaged value of RMS current since last measurements reset.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_RMS\_CURRENT\_RUN} {0xFFFF} {Averaged value of RMS current during last second.} {\reflink{Table}{voltage-representation}}
+}
+{CHx RMS current register 0}
+{MPMCM-CHxRCR0}
+
+\paragraph{CHx RMS current register 1}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_RMS\_CURRENT\_MAX[15:0]}}
+{\rmf{16}{|c|}{CHx\_RMS\_CURRENT\_MIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_RMS\_CURRENT\_MAX} {0xFFFF} {Maximum value of RMS current since last measurements reset.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_RMS\_CURRENT\_MIN} {0xFFFF} {Minimum value of RMS current since last measurements reset.} {\reflink{Table}{voltage-representation}}
+}
+{CHx RMS current register 1}
+{MPMCM-CHxRCR1}
+
+\newpage
+
+\paragraph{CHx apparent power register 0}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_APPARENT\_POWER\_MEAN[15:0]}}
+{\rmf{16}{|c|}{CHx\_APPARENT\_POWER\_RUN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_APPARENT\_POWER\_MEAN} {0x7FFF} {Averaged value of apparent power since last measurements reset.} {\reflink{Table}{electrical-power-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_APPARENT\_POWER\_RUN} {0x7FFF} {Averaged value of apparent power during last second.} {\reflink{Table}{electrical-power-representation}}
+}
+{CHx apparent power register 0}
+{MPMCM-CHxAPPR0}
+
+\paragraph{CHx apparent power register 1}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_APPARENT\_POWER\_MAX[15:0]}}
+{\rmf{16}{|c|}{CHx\_APPARENT\_POWER\_MIN[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_APPARENT\_POWER\_MAX} {0x7FFF} {Maximum value of apparent power since last measurements reset.} {\reflink{Table}{electrical-power-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_APPARENT\_POWER\_MIN} {0x7FFF} {Minimum value of apparent power since last measurements reset.} {\reflink{Table}{electrical-power-representation}}
+}
+{CHx apparent power register 1}
+{MPMCM-CHxAPPR1}
+
+\newpage
+
+\paragraph{CHx power factor register 0}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHx\_POWER\_FACTOR\_MEAN[7:0]}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHx\_POWER\_FACTOR\_RUN[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {24$\,-\,$16} {8} {CHx\_POWER\_FACTOR\_MEAN} {0x7F} {Averaged value of power factor since last measurements reset.} {\reflink{Table}{power-factor-representation}}
+    \rfu {15$\,-\,$8} {8} {0x00}
+    \rff {7$\,-\,$0} {8} {CHx\_POWER\_FACTOR\_RUN} {0x7F} {Averaged value of power factor during last second.} {\reflink{Table}{power-factor-representation}}
+}
+{CHx power factor register 0}
+{MPMCM-CHxPFR0}
+
+\paragraph{CHx power factor register 1}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHx\_POWER\_FACTOR\_MAX[7:0]}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHx\_POWER\_FACTOR\_MIN[7:0]}}
+
+\rft {
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {23$\,-\,$16} {8} {CHx\_POWER\_FACTOR\_MAX} {0x7F} {Maximum value of power factor since last measurements reset.} {\reflink{Table}{power-factor-representation}}
+    \rfu {15$\,-\,$8} {8} {0x00}
+    \rff {7$\,-\,$0} {8} {CHx\_POWER\_FACTOR\_MIN} {0x7F} {Minimum value of power factor since last measurements reset.} {\reflink{Table}{power-factor-representation}}
+}
+{CHx power factor register 1}
+{MPMCM-CHxPFR1}
+
+\newpage
+
+\paragraph{CHx energy register}
+
+\rmt
+{\rmf{16}{|c|}{CHx\_APPARENT\_ENERGY[15:0]}}
+{\rmf{16}{|c|}{CHx\_ACTIVE\_ENERGY[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CHx\_APPARENT\_ENERGY} {0x0000} {Accumulated apparent energy since last measurements reset.} {\reflink{Table}{electrical-energy-representation}}
+    \rff {15$\,-\,$0} {16} {CHx\_ACTIVE\_ENERGY} {0x0000} {Accumulated active energy since last measurements reset.} {\reflink{Table}{electrical-energy-representation}}
+}
+{CHx energy register}
+{MPMCM-CHxER}
+
+\newpage
+
+\subsubsection{BCM specific registers set}
+
+\rtt {
+    \rtl {0x09} {FLAGS\_1} {8} {R}{BCM-FR1} {Compilation flags.}
+    \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {BCM-CFGR0} {\texttt{CHEN} threshold and toggle period.}
+    \rtl {0x0B} {CONFIGURATION\_1} {32} {R/W} {BCM-CFGR1} {Low voltage flag (\texttt{LVF}) thresholds.}
+    \rtl {0x0C} {STATUS\_1} {16} {R} {BCM-SR1} {Charging and backup status.}
+    \rtl {0x0D} {CONTROL\_1} {8} {R/W} {BCM-CR1} {Charging and backup control.}
+    \rtl {0x0E} {ANALOG\_DATA\_1} {32} {R} {BCM-ADR1} {$ V_{SRC} $ and $ V_{STR} $ voltages measurements.}
+    \rtl {0x0F} {ANALOG\_DATA\_2} {32} {R} {BCM-ADR2} {$ V_{BKP} $ voltage and $ I_{STR} $ current measurements.}
+}
+{BCM specific registers set}
+
+\paragraph{Flags register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{12}{|c} & \rmf{1}{|c}{BKFH} & \rmf{1}{|c}{CLFH} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CEFH}}
+
+\rft {
+    \rfu {31$\,-\,$4} {28} {0x0000000}
+    \rff {3} {1} {BKFH} {$ - $} {Backup output control mode (set at compilation step according to hardware).} {\textbf{0b0} : Backup output controlled by the MCU. \\ \textbf{0b1} : Backup output controlled by hardware.}
+    \rff {2} {1} {CLFH} {$ - $} {LED control mode (set at compilation step according to hardware).} {\textbf{0b0} : LED controlled by the MCU. \\ \textbf{0b1} : LED controlled by hardware.}
+    \rff {1} {1} {CSFH} {$ - $} {Charge status mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge status connected to the MCU. \\ \textbf{0b1} : Charge status connected in hardware.}
+    \rff {0} {1} {CEFH} {$ - $} {Charge control mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge controlled by the MCU. \\ \textbf{0b1} : Charge controlled by hardware.}
+}
+{Flags register 1}
+{BCM-FR1}
+
+\newpage
+
+\paragraph{Configuration register 0}
+
+\rmt
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHEN\_TOGGLE\_PERIOD}}
+{\rmf{16}{|c|}{CHEN\_THRESHOLD}}
+
+\rft {
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {23$\,-\,$16} {8} {CHEN\_TOGGLE\_PERIOD} {$ - $} {Charge toggle period.} {\reflink{Table}{time-representation}}
+    \rff {15$\,-\,$0} {16} {CHEN\_THRESHOLD} {$ - $} {Voltage threshold to set \texttt{CHEN} bit.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 0}
+{BCM-CFGR0}
+
+\textbf{\underline{Note:}} this register is only used when \texttt{CHMD = 0b1} and \texttt{CEFH = 0b0}.
+
+\paragraph{Configuration register 1}
+
+\rmt
+{\rmf{16}{|c|}{LVF\_HIGH\_THRESHOLD}}
+{\rmf{16}{|c|}{LVF\_LOW\_THRESHOLD}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {LVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {LVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 1}
+{BCM-CFGR1}
+
+\newpage
+
+\paragraph{Status register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{7}{|c} & \rmf{1}{|c}{LVF} &  \rmf{2}{|c}{CHRGST1} & \rmf{2}{|c}{CHRGST0} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
+
+\rft {
+    \rfu {31$\,-\,$9} {23} {0b0[23]}
+    \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : battery voltage is above the threshold. \\ \textbf{0b1} : battery voltage is under the threshold.}
+    \rff {7$\,-\,$6} {2} {CHRGST1} {0b11} {Battery charging status 1.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
+    \rff {5$\,-\,$4} {2} {CHRGST0} {0b11} {Battery charging status 0.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
+    \rff {3$\,-\,$2} {2} {CHENST} {0b11} {Battery charging enable status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
+    \rff {1$\,-\,$0} {2} {BKENST} {0b11} {Backup output state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : backup output disabled. \\ \textbf{0b01} : backup output enabled.}
+}
+{Status register 1}
+{BCM-SR1}
+
+\bigskip
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|p{15mm}|p{15mm}|p{60mm}|}
+        \tl\cellcolor{LightGray}\centering\texttt{CHRGST1} &
+        \cellcolor{LightGray}\centering\texttt{CHRGST0} & \cellcolor{LightGray}\centering\textbf{Charge status} \tabularnewline
+        \tl\centering\textbf{0b0} & \centering\textbf{0b0} & \centering Not charging or terminated \tabularnewline
+        \tl\centering\textbf{0b0} & \centering\textbf{0b1} & \centering Constant current charging (CC) \tabularnewline
+        \tl\centering\textbf{0b1} & \centering\textbf{0b1} & \centering Constant voltage charging (CV) \tabularnewline
+        \tl\centering\textbf{0b1} & \centering\textbf{0b0} & \centering Low battery of thermal shutdown fault \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{BCM charge status bits}
+    \label{bcm-chrgst}
+\end{table}
+
+\newpage
+
+\paragraph{Control register 1}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{13}{|c} & \rmf{1}{|c}{CHEN} & \rmf{1}{|c}{CHMD} & \rmf{1}{|c|}{BKEN}}
+
+\rft {
+    \rfu {31$\,-\,$3} {29} {0b0[29]}
+    \rff {2} {1} {CHEN} {0b0} {Battery charging control \\ (only if \texttt{CHMD = 0b1} and \texttt{CEFH = 0b0}).} {\textbf{0b0} : disable charge. \\ \textbf{0b1} : enable charge.}
+    \rff {1} {1} {CHMD} {0b0} {Battery charging mode.} {\textbf{0b0} : charge is automatically controlled by software. \\ \textbf{0b1} : charge is controlled by the \texttt{CHEN} bit.}
+    \rff {0} {1} {BKEN} {0b0} {Backup output control.} {\textbf{0b0} : disable backup output. \\ \textbf{0b1} : enable backup output.}
+}
+{Control register 1}
+{BCM-CR1}
+
+\newpage
+
+\paragraph{Analog data register 1}
+
+\rmt
+{\rmf{16}{|c|}{VSTR[15:0]}}
+{\rmf{16}{|c|}{VSRC[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {VSTR} {0xFFFF} {Battery voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {VSRC} {0xFFFF} {Source voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 1}
+{BCM-ADR1}
+
+\paragraph{Analog data register 2}
+
+\rmt
+{\rmf{16}{|c|}{ISTR[15:0]}}
+{\rmf{16}{|c|}{VBKP[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {ISTR} {0xFFFF} {Battery charge current.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {VBKP} {0xFFFF} {Backup voltage.} {\reflink{Table}{voltage-representation}}
+}
+{Analog data register 2}
+{BCM-ADR2}
+
+\newpage
+
+\subsection{External nodes}
+
+\subsubsection{R4S8CR specific registers set}
+
+\rtt {
+    \rtl {0x00} {STATUS} {16} {R} {R4S8CR-SR} {Relays status.}
+    \rtl {0x01} {CONTROL} {8} {R/W} {R4S8CR-CR} {Relays control.}
+}
+{R4S8CR registers set}
+
+\paragraph{Status register}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmf{2}{|c}{R8STST} & \rmf{2}{|c}{R7STST} & \rmf{2}{|c}{R6STST} & \rmf{2}{|c}{R5STST} & \rmf{2}{|c}{R4STST} & \rmf{2}{|c}{R3STST} & \rmf{2}{|c}{R2STST} & \rmf{2}{|c|}{R1STST}}
+
+\rft {
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \hline\cellcolor{PeachPuff}\centering\textbf{15$\,-\,$14} & \centering 2 & \centering\texttt{R8STST} & \centering 0b11 & \centering Relay 8 state. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{13$\,-\,$12} & \centering 2 & \centering\texttt{R7STST} & \centering 0b11 & \centering Relay 7 status. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{11$\,-\,$10} & \centering 2 & \centering\texttt{R6STST} & \centering 0b11 & \centering Relay 6 status. & \centering \reflink{Table}{bit-representation} \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{9$\,-\,$8} & \centering 2 & \centering\texttt{R5STST} & \centering 0b11 & \centering Relay 5 status. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{7$\,-\,$6} & \centering 2 & \centering\texttt{R4STST} & \centering 0b11 & \centering Relay 4 status. & \centering \textbf{0b0} : NC path closed \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{5$\,-\,$4} & \centering 2 & \centering\texttt{R3STST} & \centering 0b11 & \centering Relay 3 status. & \centering \textbf{0b1} : NO path closed \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{3$\,-\,$2} & \centering 2 & \centering\texttt{R2STST} & \centering 0b11 & \centering Relay 2 status. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{1$\,-\,$0} & \centering 2 & \centering\texttt{R1STST} & \centering 0b11 & \centering Relay 1 status. & \tabularnewline
+}
+{Status register}
+{R4S8CR-SR}
+
+\newpage
+
+\paragraph{Control register}
+
+\rmt
+{\rmu{16}{|c|}}
+{\rmu{8}{|c} & \rmf{1}{|c}{R8ST} & \rmf{1}{|c}{R7ST} & \rmf{1}{|c}{R6ST} & \rmf{1}{|c}{R5ST} & \rmf{1}{|c}{R4ST} & \rmf{1}{|c}{R3ST} & \rmf{1}{|c}{R2ST} & \rmf{1}{|c|}{R1ST}}
+
+\rft {
+    \rfu {31$\,-\,$8} {24} {0x000000}
+    \hline\cellcolor{PeachPuff}\centering\textbf{7} & \centering 1 & \centering\texttt{R8ST} & \centering 0b0 & \centering Relay 8 state. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{6} & \centering 1 & \centering\texttt{R7ST} & \centering 0b0 & \centering Relay 7 state. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{5} & \centering 1 & \centering\texttt{R6ST} & \centering 0b0 & \centering Relay 6 state. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{4} & \centering 1 & \centering\texttt{R5ST} & \centering 0b0 & \centering Relay 5 state. & \centering \textbf{0b0} : close NC path \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{3} & \centering 1 & \centering\texttt{R4ST} & \centering 0b0 & \centering Relay 4 state. & \centering \textbf{0b1} : close NO path \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{2} & \centering 1 & \centering\texttt{R3ST} & \centering 0b0 & \centering Relay 3 state. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{1} & \centering 1 & \centering\texttt{R2ST} & \centering 0b0 & \centering Relay 2 state. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{0} & \centering 1 & \centering\texttt{R1ST} & \centering 0b0 & \centering Relay 1 state. & \tabularnewline
+}
+{Control register}
+{R4S8CR-CR}
+
+\newpage
+
+\subsection{Bus enumeration}
+
+Thanks to the node addressing system and the read commands, the master module is able to enumerate dynamically all the slaves nodes attached to the RS485 bus.
+
+\subsubsection{DINFox nodes}
+
+For each \texttt{NODE\_ADDR} between \textbf{0x00} and \textbf{0x6F}, the master uses the UNA-AT protocol at 1200 bauds and reads the common \texttt{NODE\_ID} register (see \reflink{section}{node-id-register}). If a data is received, the master stores the address and the \texttt{BOARD\_ID} (directly read in the reply) in its nodes list.
+
+\subsubsection{External nodes}
+
+\paragraph{KMTronic R4S8CR}
+
+For each \texttt{NODE\_ADDR} between \textbf{0x70} and \textbf{0x7E}, the master uses the KMTronic protocol at 9600 bauds and reads the relays state. If a data is received, the master stores the address in its nodes list.
+
+\newpage

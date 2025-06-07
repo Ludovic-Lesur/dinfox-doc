@@ -1,0 +1,48 @@
+\section{Embedded software}
+
+\subsection{DINFox master node (DMM)}
+
+The master node embedded software is hosted on GitHub: \url{https://github.com/Ludovic-Lesur/dmm}. As shown in the diagram below, the code is structured in such a way that all slaves node are accessed through a common interface (\texttt{node.h} header file). From low to high layers, the architecture is composed of:
+
+\bulletlist{
+    \item the \textbf{common physical layer} (RS485 bus) handled by the LPUART peripheral.
+    \item the specific \textbf{slave nodes drivers}, using the \textbf{LMAC} and the \textbf{UNA-AT} protocols for the DINFox nodes.
+    \item a \textbf{common node interface} to write and read registers of all slave nodes (\textbf{UNA framework} implementation).
+    \item the \textbf{human machine interface (HMI)} layer which handles the local user interface (screen, buttons and switches) and defines the data printing format for each node.
+    \item the \textbf{radio} layer which defines the uplink messages format for each node and implements the downlink operation codes.
+    \item the main \textbf{application} which calls the HMI and the radio drivers.
+}
+
+\vspace{5mm}
+
+\begin{figure}[h]
+    \centering
+    \graph{120mm}{dmm-sw-architecture.drawio.png}
+    \vspace*{\baselineskip}
+    \capt{Simplified architecture of the master embedded software}
+\end{figure}
+
+\newpage
+
+\subsection{DINFox slave nodes (DSM)}
+
+The slave nodes embedded software is hosted on GitHub: \url{https://github.com/Ludovic-Lesur/dsm}. As shown in the diagram below, the code is structured in such a way that all registers are accessed through a common interface (\texttt{node.h} header file). From low to high layers, the architecture is composed of:
+
+\bulletlist{
+    \item the \textbf{common physical layer} (RS485 bus) handled by the LPUART peripheral.
+    \item the \textbf{LMAC driver} which manages the network layer.
+    \item the \textbf{AT} and \textbf{UNA-AT} drivers which are responsible for command parsing and execution.
+    \item a \textbf{common node interface} to write and read registers of all slave nodes (\textbf{UNA framework} implementation). Contrary to the master node where all slaves have to be dynamically supported, the node is here selected at compilation level with macros (build configuration), since the final code will be flashed on 1 defined slave.
+    \item the main \textbf{application} which calls the command line task continuously.
+}
+
+\vspace{5mm}
+
+\begin{figure}[h]
+    \centering
+    \graph{120mm}{dsm-sw-architecture.drawio.png}
+    \vspace*{\baselineskip}
+    \capt{Simplified architecture of the slave embedded software}
+\end{figure}
+
+\newpage

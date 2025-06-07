@@ -1,0 +1,45 @@
+\titleformat{\part}[display]
+{\normalfont\selectfont\filcenter\sf\bfseries}
+{\fontsize{20pt}{30pt}\selectfont Partie \thepart}{1em}
+{\vspace{15pt}\fontsize{25pt}{30pt}\selectfont}
+
+\titleformat{\section}
+{\normalfont\fontsize{14pt}{20pt}\selectfont\sf\bfseries}
+{\thesection}{1em}
+{}
+
+\titleformat{\subsection}
+{\normalfont\fontsize{12pt}{14pt}\selectfont\sf\bfseries}
+{\thesubsection}{1em}
+{}
+
+\titleformat{\subsubsection}
+{\normalfont\fontsize{10pt}{12pt}\selectfont\sf\bfseries}
+{\thesubsubsection}{1em}
+{}
+
+\titleformat{\paragraph}
+{\normalfont\fontsize{8pt}{12pt}\selectfont\sf\bfseries}
+{\theparagraph}{1em}
+{}
+
+\pagestyle{fancy}
+
+\parindent = 0mm
+\footskip = 10mm
+\headheight = 25mm
+\headsep = 10mm
+\textheight = 233mm
+
+\setlength{\skip\footins}{0mm}
+\renewcommand{\headrulewidth}{0.2pt}
+
+\fancyhead[L]{\graph{40mm}{dinfox-logo.drawio.png}}
+\fancyhead[C]{\textsf{\textbf{\Large{DINFox system technical description \\}}}}
+\fancyhead[R]{\textcolor{Gray}{\textsf{\textbf{Ref:} \tdref \\ \textbf{Revision:} \tdrev \\ \textbf{Date:} \tddate}}}
+
+\renewcommand{\footrulewidth}{0.2pt}
+
+\fancyfoot[L]{}
+\fancyfoot[C]{\textbf{} \\ \textbf{\Large{\textsf{\thepage}}}}
+\fancyfoot[R]{}

@@ -1,0 +1,216 @@
+\section{Bus description}
+
+\subsection{OSI model}
+
+The figure below shows the OSI model implementation of the DINFox bus. There are 3 main groups of layers:
+
+\bulletlist{
+    \item On a hardware point of view, all the nodes are \textbf{physically connected on a shared RS485 bus}.
+    \item Then, the data link, network and transport layers are \textbf{specific to the board}: DINFox nodes use the UART, LMAC and UNA-AT protocols, whereas external nodes have custom interfaces imposed by the product manufacturer.
+    \item Finally, the application layer \textbf{unifies the node access methods} by using 32-bits software registers regardless of the lower layers, as specified in the UNA framework.
+}
+\bigskip
+
+\begin{figure}[h]
+    \centering
+    \graph{\linewidth}{dinfox-osi-model.drawio.png}
+    \vspace*{\baselineskip}
+    \capt{OSI model of the DINFox bus}
+\end{figure}
+
+\newpage
+
+\subsection{Physical layer (RS485)}
+
+All the nodes of a DINFox system are \textbf{physically connected on a shared RS485 bus} composed of 2 differential signals (named $ A $ and $ B $).
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{30mm}|p{30mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Parameter} & \cellcolor{LightGray}\centering \textbf{Value} \tabularnewline
+        \tl\centering Differential voltage & \centering $ 3.0\,V $ \tabularnewline
+        \tl\centering Data rate & \centering Node-dependent \linebreak (see \reflink{section}{data-link-layer})\tabularnewline
+        \hline
+    \end{tabular}
+    \capt{RS485 parameters}
+\end{table}
+
+\subsubsection{DINFox nodes} \label{dinfox-rs485}
+
+To reach a very low power consumption, DINFox nodes are based on the MAX3471 transceiver from Maxim Integrated, which is always powered by a $ 3.0\,V $ voltage regulator. This is the reason why the differential voltage of the RS485 is fixed to $ 3.0\,V $ as mentioned before.
+\medskip \\
+Additionally, DINFox nodes use a 4 wires link composed of a common power supply rail ($ V_{RS} $), the ground ($ GND $) and the two signals of the RS485 differential pair ($ A $ and $ B $). These signals are grouped on a 4 pins connector on both edges of the PCB, so that multiple nodes can be \textbf{stacked on a DIN rail} without any wire.
+
+\begin{figure}[h]
+    \centering
+    \graph{100mm}{dinfox-rs485.png}
+    \capt{RS485 connectors pin-out of DINFox nodes}
+\end{figure}
+
+\subsubsection{External nodes}
+
+To be compatible with the DINFox system, the only requirement of an external node is to \textbf{support RS485 communication with a differential voltage of} $ 3.0\,V $, which is imposed by the master node (\textbf{DMM} board).
+\medskip \\
+Depending on the power input specifications, external nodes can either be supplied by the $ V_{RS} $ rail or by an external source.
+
+\newpage
+
+\subsection{Data link layer} \label{data-link-layer}
+
+\subsubsection{DINFox nodes (UART)}
+
+DINFox nodes use the UART standard to transfer data over the RS485 bus, with the following parameters. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{30mm}|p{30mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Parameter} & \cellcolor{LightGray}\centering \textbf{Value} \tabularnewline
+        \tl\centering Number of start bits & \centering 1 \tabularnewline
+        \tl\centering Number of data bits & \centering 8 \tabularnewline
+        \tl \centering Number of stop bits & \centering 1 \tabularnewline
+        \tl\centering Parity & \centering None \tabularnewline
+        \tl\centering Baud rate & \centering 1200 bauds \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{DINFox nodes UART parameters}
+\end{table}
+
+\paragraph{Slave nodes}
+
+On slave nodes, the LPUART peripheral of the MCU is clocked by an external $ 32.768\,kHz $ quartz. The internal baud rate generator for TX and RX operations is also deriving from this quartz. Since the input frequency is low, the baud rate value has to be limited to avoid jitter on the signal. At 9600 bauds, there are only 4 clock cycles from the $ 32.768\,kHz $: the resulting signal has a very poor duty cycle stability, leading to bit transmission or reception errors on the RS485 bus. To improve transfer robustness, the baud rate for DINFox nodes has thus been reduced to \textbf{1200 bauds}.
+
+\paragraph{Master node}
+
+Since the master node initiates all the transfers and is never in a continuous reception state, there is no need to keep the LPUART active in stop mode, the RS485 transceiver can be switched off when there is no pending operation. Therefore, the master node can use a high speed clock source when transmitting on the RS485 bus, so that it can communicate with external nodes at higher baud rates without any jitter issue.
+
+\subsubsection{External nodes}
+
+\paragraph{KMTronic R4S8CR}
+
+R4S8CR protocol is based on the UART standard to transfer data over the RS485 bus, with the following parameters. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{30mm}|p{30mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Parameter} & \cellcolor{LightGray}\centering \textbf{Value} \tabularnewline
+        \tl\centering Number of start bits & \centering 1 \tabularnewline
+        \tl\centering Number of data bits & \centering 8 \tabularnewline
+        \tl\centering Number of stop bits & \centering 1 \tabularnewline
+        \tl\centering Parity & \centering None \tabularnewline
+        \tl\centering Baud rate & \centering 9600 bauds \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{R4S8CR UART parameters}
+\end{table}
+
+\newpage
+
+\subsection{Network layer}
+
+\subsubsection{DINFox nodes (LMAC)} \label{dinfox-nodes-lmac}
+
+The nodes specifically designed for the DINFox system use a custom protocol called \textbf{LMAC} (Light Media Access Control), which adds the minimum overhead to transfer 7-bits data between two nodes.
+\medskip \\
+The LMAC protocol is provided as a cross-platform C library and is available on GitHub: \url{https://github.com/Ludovic-Lesur/lmac-driver}. It is embedded as a Git sub-module in the nodes firmware.
+\medskip \\
+An LMAC frame is composed of the following fields:
+
+\bulletlist{
+    \item The first byte of the frame is the \textbf{destination address} of the packet. It must have the \textbf{most significant bit set to 1} in order to be recognized as an address (see \reflink{section}{node-address}). All other bytes must have the most significant bit set to 0.
+    \item The second byte is the \textbf{source address}, in other words the address of the node which is transmitting the packet. For a slave node, this field is used to know at which address the response has to be sent. For the master node, it is used to check that the response comes from the expected slave.
+    \item Next bytes are the data.
+    \item Then there is a \textbf{16-bits checksum} composed of the \texttt{CKH} and \texttt{CKL} fields. It is computed over all the previous bytes using the \textbf{Fletcher algorithm}.
+    \item The frame finally ends with a specific marker \textbf{0x7F} which must not be used in any other byte: in particular, the  \textbf{address 0x7F is forbidden} because the source address would be erroneously read as the end marker.
+}
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{30mm}m{30mm}m{30mm}m{19.5mm}m{19.5mm}m{19.5mm}|}
+        \hline
+        \cellcolor{LightGray}\centering \textbf{B0} &
+        \cellcolor{LightGray}\centering \textbf{B1} &
+        \cellcolor{LightGray}\centering \textbf{B2 .. B(n)} &
+        \cellcolor{LightGray}\centering \textbf{B(n+1)} &
+        \cellcolor{LightGray}\centering \textbf{B(n+2)} &
+        \cellcolor{LightGray}\centering \textbf{B(n+3)} \tabularnewline
+        \hline
+        \multicolumn{1}{|c}{\cellcolor{LimeGreen}\centering Destination @ \textbf{| 0x80}} &
+        \multicolumn{1}{|c}{\cellcolor{LightGreen}\centering Source @} &
+        \multicolumn{1}{|c}{\cellcolor{Yellow}\centering \texttt{DATA}} &
+        \multicolumn{1}{|c}{\cellcolor{Apricot}\centering \texttt{CKH}} &
+        \multicolumn{1}{|c}{\cellcolor{YellowOrange}\centering \texttt{CKL}} &
+        \multicolumn{1}{|c|}{\cellcolor{OrangeRed}\centering \textbf{0x7F}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{LMAC frame structure}
+\end{table}
+
+\subsubsection{External nodes}
+
+\paragraph{KMTronic R4S8CR}
+
+The R4S8CR relay box uses a custom protocol where the address is not managed by the network layer, but by the transport layer with the commands content. Indeed, each address corresponds to one relay rather than one box, so that multiple boxes can be connected on the same bus. However, all the frames start with a \textbf{0xFF} header. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|m{40mm}m{125mm}|}
+        \hline
+        \cellcolor{LightGray}\centering \textbf{B0} &
+        \cellcolor{LightGray}\centering \textbf{B1 .. Bn} \tabularnewline
+        \hline
+        \multicolumn{1}{|c}{\cellcolor{LightBlue}\centering \textbf{0xFF}} &
+        \multicolumn{1}{|c|}{\centering \texttt{DATA}} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{R4S8CR frame structure}
+\end{table}
+
+\newpage
+
+\subsection{Transport layer}
+
+\subsubsection{DINFox nodes (UNA-AT)}
+
+On top of the network protocol, nodes communication is performed through \textbf{AT commands} which are transferred in ASCII format in the \texttt{DATA} field of the LMAC frame. As part of the UNA framework, the aim of this interface is to read and write 32 bits registers in order to control or monitor the node (see \reflink{section}{nodes-registers}). The commands are sent by the master node and will always be followed by a reply from the queried slave.
+\medskip \\
+All DINFox nodes must support the following commands set. Mandatory fields are marked in \textcolor{RedOrange}{orange}, optional ones are marked in \textcolor{Green}{green}. All values, addresses, masks and codes are in \textbf{hexadecimal representation} from 2 to 8 characters (1 to 4 bytes value). All AT commands and replies end with a single \textbf{CR character} (0x0D ASCII code).
+\medskip \\
+The UNA-AT protocol is provided as a cross-platform C library and is available on GitHub: \url{https://github.com/Ludovic-Lesur/una-at}. It is embedded as a Git sub-module in the nodes firmware. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{16mm}|p{63mm}|p{53mm}|p{24mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Command}  &\cellcolor{LightGray}\centering \textbf{Syntax} & \cellcolor{LightGray}\centering \textbf{Parameters} & \cellcolor{LightGray}\centering \textbf{Reply} \tabularnewline
+        \tl\centering Read register & \centering \texttt{AT\$R=<\textcolor{RedOrange}{reg\_addr}><CR>} & \centering \texttt{<\textcolor{RedOrange}{reg\_addr}>} : Register address to read. & \centering \texttt{<\textcolor{RedOrange}{reg\_value}><CR>} \linebreak or \linebreak \texttt{ERROR\_<\textcolor{RedOrange}{code}><CR>} \tabularnewline
+        \tl\centering Write register & \centering \texttt{AT\$W=<\textcolor{RedOrange}{reg\_addr}>,<\textcolor{RedOrange}{reg\_value}>,<\textcolor{Green}{reg\_mask}><CR>} & \centering \texttt{<\textcolor{RedOrange}{reg\_addr}>} : Register address to write. \linebreak \texttt{<\textcolor{RedOrange}{reg\_value}>} : Value to write in register. \linebreak \texttt{<\textcolor{Green}{reg\_mask}>} : Optional writing mask. & \centering \texttt{OK<CR>} \linebreak or \linebreak \texttt{ERROR\_<\textcolor{RedOrange}{code}><CR>} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{UNA-AT commands set}
+\end{table}
+
+When an error occurs during a command execution, the slave replies \texttt{ERROR\_<\textcolor{RedOrange}{code}><CR>} on the bus, where \texttt{<\textcolor{RedOrange}{code}>} is always a 16 bits hexadecimal value. This error code is also stored in the slave errors stack, which can be read later on by the master (see \reflink{section}{error-stack-register}). The error will also be notified through dedicated \textbf{status bits} or a specific \textbf{error value} in the involved register.
+
+\subsubsection{External nodes}
+
+\paragraph{KMTronic R4S8CR}
+
+The R4S8CR commands are detailed in the following table, where all syntax is written in \textbf{hexadecimal format}. This protocol is implemented in a cross-platform C driver available on GitHub: \url{https://github.com/Ludovic-Lesur/r4s8cr-driver}. It is embedded as a Git sub-module in the master node firmware. \pfs
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{18mm}|p{30mm}|p{53mm}|p{55mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Command}  &\cellcolor{LightGray}\centering \textbf{Syntax} & \cellcolor{LightGray}\centering \textbf{Parameters} & \cellcolor{LightGray}\centering \textbf{Reply} \tabularnewline
+        \tl\centering Read relays & \centering \texttt{A<\textcolor{RedOrange}{relay\_box\_id}>00} & \centering \texttt{<\textcolor{RedOrange}{relay\_box\_id}>} : 4 bits relay box ID. & \centering \texttt{A<\textcolor{RedOrange}{relay\_box\_id}><\textcolor{RedOrange}{r1st}><\textcolor{RedOrange}{r2st}><\textcolor{RedOrange}{r3st}>\\<\textcolor{RedOrange}{r4st}><\textcolor{RedOrange}{r5st}><\textcolor{RedOrange}{r6st}><\textcolor{RedOrange}{r7st}><\textcolor{RedOrange}{r8st}>} \vspace{2mm} \linebreak \texttt{<\textcolor{RedOrange}{rxst}>} : \texttt{00} if the relay \texttt{\textcolor{RedOrange}{x}} is off, \linebreak \texttt{01} if the relay \texttt{\textcolor{RedOrange}{x}} is on. \tabularnewline
+        \tl\centering Write relay & \centering \texttt{<\textcolor{RedOrange}{relay\_id}><\textcolor{RedOrange}{rxst}>} & \centering \texttt{<\textcolor{RedOrange}{relay\_id}>} : 8 bits relay ID. \linebreak \texttt{<\textcolor{RedOrange}{rxst}>} : \texttt{00} to turn off, \texttt{01} to turn on. & \centering \textit{None.} \tabularnewline
+        \hline
+    \end{tabular}
+    \capt{R4S8CR commands set}
+\end{table}
+
+\textbf{\underline{Note:}}
+\medskip \\
+\texttt{\textcolor{RedOrange}{relay\_box\_id}} = ( \texttt{\textcolor{DarkBlue}{NODE\_ADDR}} $-$ 0x70 + 1 ) \texttt{\&} 0x0F
+\medskip \\
+\texttt{\textcolor{RedOrange}{relay\_id}} = ( ( \texttt{\textcolor{RedOrange}{relay\_box\_id}} $-$ 1 ) $\times$ 8 ) + \texttt{relay\_number} \qquad (\texttt{relay\_number} = 1 to 8)
+
+\newpage
