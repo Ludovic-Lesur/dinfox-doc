@@ -563,10 +563,11 @@ Root bases are defined in each embedded software project:
     \rtl {0x09} {FLAGS\_1} {8} {R}{BPSM-FR1} {Compilation flags.}
     \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {BPSM-CFGR0} {\texttt{CHEN} threshold and toggle period.}
     \rtl {0x0B} {CONFIGURATION\_1} {32} {R/W} {BPSM-CFGR1} {Low voltage flag (\texttt{LVF}) thresholds.}
-    \rtl {0x0C} {STATUS\_1} {16} {R} {BPSM-SR1} {Charging and backup status.}
-    \rtl {0x0D} {CONTROL\_1} {8} {R/W} {BPSM-CR1} {Charging and backup control.}
-    \rtl {0x0E} {ANALOG\_DATA\_1} {32} {R} {BPSM-ADR1} {$ V_{SRC} $ and $ V_{STR} $ voltages measurements.}
-    \rtl {0x0F} {ANALOG\_DATA\_2} {16} {R} {BPSM-ADR2} {$ V_{BKP} $ voltage measurement.}
+    \rtl {0x0C} {CONFIGURATION\_2} {32} {R/W} {BPSM-CFGR2} {Critical voltage flag (\texttt{CVF}) thresholds.}
+    \rtl {0x0D} {STATUS\_1} {16} {R} {BPSM-SR1} {Charging and backup status.}
+    \rtl {0x0E} {CONTROL\_1} {8} {R/W} {BPSM-CR1} {Charging and backup control.}
+    \rtl {0x0F} {ANALOG\_DATA\_1} {32} {R} {BPSM-ADR1} {$ V_{SRC} $ and $ V_{STR} $ voltages measurements.}
+    \rtl {0x10} {ANALOG\_DATA\_2} {16} {R} {BPSM-ADR2} {$ V_{BKP} $ voltage measurement.}
 }
 {BPSM specific registers set}
 
@@ -619,15 +620,29 @@ Root bases are defined in each embedded software project:
 
 \newpage
 
+\paragraph{Configuration register 2}
+
+\rmt
+{\rmf{16}{|c|}{CVF\_HIGH\_THRESHOLD}}
+{\rmf{16}{|c|}{CVF\_LOW\_THRESHOLD}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 2}
+{BPSM-CFGR2}
+
 \paragraph{Status register 1}
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{7}{|c} & \rmf{1}{|c}{LVF} &  \rmu{2}{|c} & \rmf{2}{|c}{CHRGST} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
+{\rmu{6}{|c} & \rmf{1}{|c}{CVF} & \rmf{1}{|c}{LVF} &  \rmu{2}{|c} & \rmf{2}{|c}{CHRGST} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
 
 \rft {
-    \rfu {31$\,-\,$9} {23} {0b0[23]}
-    \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : storage element voltage is above the threshold. \\ \textbf{0b1} : storage element voltage is under the threshold.}
+    \rfu {31$\,-\,$10} {22} {0b0[22]}
+    \rff {9} {1} {CVF} {0b0} {Critical voltage detector flag.} {\textbf{0b0} : storage element voltage is above the critical threshold. \\ \textbf{0b1} : storage element voltage is under the critical threshold.}
+    \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : storage element voltage is above the low threshold. \\ \textbf{0b1} : storage element voltage is under the low threshold.}
     \rfu {7$\,-\,$6} {2} {0b00}
     \rff {5$\,-\,$4} {2} {CHRGST} {0b11} {Storage element charging status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge pending. \\ \textbf{0b01} : charge complete.}
     \rff {3$\,-\,$2} {2} {CHENST} {0b11} {Storage element charging enable status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
@@ -635,6 +650,8 @@ Root bases are defined in each embedded software project:
 }
 {Status register 1}
 {BPSM-SR1}
+
+\newpage
 
 \paragraph{Control register 1}
 
@@ -1916,10 +1933,11 @@ Root bases are defined in each embedded software project:
     \rtl {0x09} {FLAGS\_1} {8} {R}{BCM-FR1} {Compilation flags.}
     \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {BCM-CFGR0} {\texttt{CHEN} threshold and toggle period.}
     \rtl {0x0B} {CONFIGURATION\_1} {32} {R/W} {BCM-CFGR1} {Low voltage flag (\texttt{LVF}) thresholds.}
-    \rtl {0x0C} {STATUS\_1} {16} {R} {BCM-SR1} {Charging and backup status.}
-    \rtl {0x0D} {CONTROL\_1} {8} {R/W} {BCM-CR1} {Charging and backup control.}
-    \rtl {0x0E} {ANALOG\_DATA\_1} {32} {R} {BCM-ADR1} {$ V_{SRC} $ and $ V_{STR} $ voltages measurements.}
-    \rtl {0x0F} {ANALOG\_DATA\_2} {32} {R} {BCM-ADR2} {$ V_{BKP} $ voltage and $ I_{STR} $ current measurements.}
+    \rtl {0x0C} {CONFIGURATION\_2} {32} {R/W} {BCM-CFGR2} {Critical voltage flag (\texttt{CVF}) thresholds.}
+    \rtl {0x0D} {STATUS\_1} {16} {R} {BCM-SR1} {Charging and backup status.}
+    \rtl {0x0E} {CONTROL\_1} {8} {R/W} {BCM-CR1} {Charging and backup control.}
+    \rtl {0x0F} {ANALOG\_DATA\_1} {32} {R} {BCM-ADR1} {$ V_{SRC} $ and $ V_{STR} $ voltages measurements.}
+    \rtl {0x10} {ANALOG\_DATA\_2} {32} {R} {BCM-ADR2} {$ V_{BKP} $ voltage and $ I_{STR} $ current measurements.}
 }
 {BCM specific registers set}
 
@@ -1972,15 +1990,31 @@ Root bases are defined in each embedded software project:
 
 \newpage
 
+\paragraph{Configuration register 2}
+
+\rmt
+{\rmf{16}{|c|}{CVF\_HIGH\_THRESHOLD}}
+{\rmf{16}{|c|}{CVF\_LOW\_THRESHOLD}}
+
+\rft {
+    \rff {31$\,-\,$16} {16} {CVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+}
+{Configuration register 2}
+{BCM-CFGR2}
+
+\newpage
+
 \paragraph{Status register 1}
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{7}{|c} & \rmf{1}{|c}{LVF} &  \rmf{2}{|c}{CHRGST1} & \rmf{2}{|c}{CHRGST0} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
+{\rmu{6}{|c} & \rmf{1}{|c}{CVF} & \rmf{1}{|c}{LVF} &  \rmf{2}{|c}{CHRGST1} & \rmf{2}{|c}{CHRGST0} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
 
 \rft {
-    \rfu {31$\,-\,$9} {23} {0b0[23]}
-    \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : battery voltage is above the threshold. \\ \textbf{0b1} : battery voltage is under the threshold.}
+    \rfu {31$\,-\,$10} {22} {0b0[22]}
+    \rff {9} {1} {CVF} {0b0} {Critical voltage detector flag.} {\textbf{0b0} : battery voltage is above the critical threshold. \\ \textbf{0b1} : battery voltage is under the critical threshold.}
+    \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : battery voltage is above the low threshold. \\ \textbf{0b1} : battery voltage is under the low threshold.}
     \rff {7$\,-\,$6} {2} {CHRGST1} {0b11} {Battery charging status 1.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
     \rff {5$\,-\,$4} {2} {CHRGST0} {0b11} {Battery charging status 0.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
     \rff {3$\,-\,$2} {2} {CHENST} {0b11} {Battery charging enable status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
@@ -1999,7 +2033,7 @@ Root bases are defined in each embedded software project:
         \tl\centering\textbf{0b0} & \centering\textbf{0b0} & \centering Not charging or terminated \tabularnewline
         \tl\centering\textbf{0b0} & \centering\textbf{0b1} & \centering Constant current charging (CC) \tabularnewline
         \tl\centering\textbf{0b1} & \centering\textbf{0b1} & \centering Constant voltage charging (CV) \tabularnewline
-        \tl\centering\textbf{0b1} & \centering\textbf{0b0} & \centering Low battery of thermal shutdown fault \tabularnewline
+        \tl\centering\textbf{0b1} & \centering\textbf{0b0} & \centering Low battery or thermal shutdown fault \tabularnewline
         \hline
     \end{tabular}
     \capt{BCM charge status bits}
