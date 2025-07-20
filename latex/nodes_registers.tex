@@ -1930,7 +1930,7 @@ Root bases are defined in each embedded software project:
 \subsubsection{BCM specific registers set}
 
 \rtt {
-    \rtl {0x09} {FLAGS\_1} {8} {R}{BCM-FR1} {Compilation flags.}
+    \rtl {0x09} {FLAGS\_1} {16} {R}{BCM-FR1} {Compilation flags.}
     \rtl {0x0A} {CONFIGURATION\_0} {32} {R/W} {BCM-CFGR0} {\texttt{CHEN} threshold and toggle period.}
     \rtl {0x0B} {CONFIGURATION\_1} {32} {R/W} {BCM-CFGR1} {Low voltage flag (\texttt{LVF}) thresholds.}
     \rtl {0x0C} {CONFIGURATION\_2} {32} {R/W} {BCM-CFGR2} {Critical voltage flag (\texttt{CVF}) thresholds.}
@@ -1945,10 +1945,12 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{12}{|c} & \rmf{1}{|c}{BKFH} & \rmf{1}{|c}{CLFH} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CEFH}}
+{\rmf{8}{|c}{SHUNT\_RESISTOR} & \rmu{4}{|c} & \rmf{1}{|c}{BKFH} & \rmf{1}{|c}{CLFH} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CEFH}}
 
 \rft {
-    \rfu {31$\,-\,$4} {28} {0x0000000}
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$8} {8} {SHUNT\_RESISTOR} {$ - $} {LTC4013 shunt resistor value.} {\textbf{Raw} value in $ m\Omega $.}
+    \rfu {7$\,-\,$4} {4} {0x0}
     \rff {3} {1} {BKFH} {$ - $} {Backup output control mode (set at compilation step according to hardware).} {\textbf{0b0} : Backup output controlled by the MCU. \\ \textbf{0b1} : Backup output controlled by hardware.}
     \rff {2} {1} {CLFH} {$ - $} {LED control mode (set at compilation step according to hardware).} {\textbf{0b0} : LED controlled by the MCU. \\ \textbf{0b1} : LED controlled by hardware.}
     \rff {1} {1} {CSFH} {$ - $} {Charge status mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge status connected to the MCU. \\ \textbf{0b1} : Charge status connected in hardware.}
