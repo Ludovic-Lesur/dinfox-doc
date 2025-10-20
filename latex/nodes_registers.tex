@@ -59,22 +59,22 @@ The available time ranges are the following:
 
 \begin{table}[!h]
     \centering
-    \begin{tabular}{|m{20mm}*{7}{m{17mm}}|}
-        \rmlsbyte
-        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{SIGN}} & \multicolumn{7}{|c|}{\cellcolor{Lavender}\texttt{VALUE[6:0]}} \tabularnewline
-        \hline\multicolumn{1}{|c}{\textbf{0b0} : positive} & \multicolumn{7}{|c|}{Raw absolute value in $ ^{\circ}C $ ($ 0-127 $ range)} \tabularnewline
-        \multicolumn{1}{|c}{\textbf{0b1} : negative} & \multicolumn{7}{|c|}{\nop} \tabularnewline
+    \begin{tabular}{|m{20mm}*{11}{m{9.3mm}}|}
+        \rmlstwelve
+        \hline\multicolumn{1}{|c}{\cellcolor{PeachPuff}\texttt{SIGN}} & \multicolumn{11}{|c|}{\cellcolor{Lavender}\texttt{VALUE[10:0]}} \tabularnewline
+        \hline\multicolumn{1}{|c}{\textbf{0b0} : positive} & \multicolumn{11}{|c|}{Raw absolute value in $ 0.1^{\circ}C $ ($ 0-2047 $ range)} \tabularnewline
+        \multicolumn{1}{|c}{\textbf{0b1} : negative} & \multicolumn{11}{|c|}{\nop} \tabularnewline
         \hline
     \end{tabular}
-    \capt{8-bits temperature representation}
+    \capt{12-bits temperature representation}
     \label{temperature-representation}
 \end{table}
 
 The available temperature range is the following:
 
 \bulletlist{
-    \item $ -127\,^{\circ}C $ to $ +126\,^{\circ}C $ with $ 1^{\circ}C $ resolution.
-    \item \textcolor{Red}{\textbf{0x7F}} is used as \textbf{error value}.
+    \item $ -204.7\,^{\circ}C $ to $ +204.7\,^{\circ}C $ with $ 0.1^{\circ}C $ resolution.
+    \item \textcolor{Red}{\textbf{0x7FF}} is used as \textbf{error value}.
 }
 
 \vspace*{5mm}
@@ -431,12 +431,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 0}
 
 \rmt
-{\rmu{8}{|c} & \rmf{8}{|c|}{TMCU[7:0]}}
+{\rmu{4}{|c} & \rmf{12}{|c|}{TMCU[11:0]}}
 {\rmf{16}{|c|}{VMCU[15:0]}}
 
 \rft {
-    \rfu {31$\,-\,$24} {8} {0x00}
-    \rff {23$\,-\,$16} {8} {TMCU} {0x7F} {MCU temperature.} {\reflink{Table}{temperature-representation}}
+    \rfu {31$\,-\,$28} {4} {0b0000}
+    \rff {27$\,-\,$16} {12} {TMCU} {0x7FF} {MCU temperature.} {\reflink{Table}{temperature-representation}}
     \rff {15$\,-\,$0} {16} {VMCU} {0xFFFF} {MCU supply voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 0}
@@ -1365,13 +1365,14 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 3}
 
 \rmt
-{\rmu{16}{|c|}}
-{\rmf{8}{|c}{HAMB[7:0]} & \rmf{8}{|c|}{TAMB[7:0]}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{HAMB[7:0]}}
+{\rmu{4}{|c} & \rmf{12}{|c|}{TAMB[11:0]}}
 
 \rft {
-    \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$8} {8} {HAMB} {0xFF} {Ambient humidity.} {\textbf{Raw} value in \%.}
-    \rff {7$\,-\,$0} {8} {TAMB} {0x7F} {Ambient temperature.} {\reflink{Table}{temperature-representation}}
+    \rfu {31$\,-\,$24} {8} {0x00}
+    \rff {23$\,-\,$16} {8} {HAMB} {0xFF} {Ambient humidity.} {\textbf{Raw} value in \%.}
+    \rfu {15$\,-\,$12} {4} {0b0000}
+    \rff {11$\,-\,$0} {12} {TAMB} {0x7FF} {Ambient temperature.} {\reflink{Table}{temperature-representation}}
 }
 {Analog data register 3}
 {SM-ADR3}
