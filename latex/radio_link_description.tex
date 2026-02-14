@@ -4,21 +4,50 @@ A DINFox system can be remotely monitored or controlled thanks to the \textbf{UH
 
 \subsection{RF performances}
 
-The \textbf{UHFM HW1.0} has an RF front-end composed of a sub-GHz transceiver, a discrete RX LNA, a discrete TX filter, a diode switch and a common antenna connector. The next table recaps its characteristics. \pfs
+The \textbf{UHFM HW2.0} is a radio board composed of a sub-GHz transceiver, an integrated RF front-end (LNA and PA) and a single antenna connector. The next tables recap its main characteristics.
+
+\subsubsection{Transmitter}
+
+All measurements were performed at $ V_{RS}=5\,V $ and a continuous wave at $ 868.13\,MHz $.
 
 \begin{table}[!h]
     \centering
-    \begin{tabular}{|p{30mm}|p{77mm}|p{10mm}p{10mm}p{10mm}|p{10mm}|}
-        \tl\cellcolor{LightGray}\centering \textbf{Parameter} & \cellcolor{LightGray}\centering \textbf{Condition} & \cellcolor{LightGray}\centering \textbf{Min} & \cellcolor{LightGray}\centering \textbf{Typ} & \cellcolor{LightGray}\centering \textbf{Max} & \cellcolor{LightGray}\centering \textbf{Unit}\tabularnewline
-        \tl\centering RF output power & \centering $ V_{RS}=5\,V $, continuous wave at $ 868.13\,MHz $ & & \centering 14 & & \centering $ dBm $ \tabularnewline
-        \pl{3-6}\centering TX current & & & \centering 32 & & \centering $ mA $ \tabularnewline
-        \tl\centering TX current & \centering $ V_{RS}=5\,V $, Sigfox uplink frame at $ 868.13\,MHz $ & & \centering 26 & & \centering $ mA $ \tabularnewline
-        \tl\centering RF sensitivity & \centering $ V_{RS}=5\,V $, Sigfox downlink frame at $ 869.525\,MHz $ & & \centering $ -128 $ & & \centering $ dBm $ \tabularnewline
-        \pl{3-6}\centering RX current & & & \centering 16 & & \centering $ mA $ \tabularnewline
+    \begin{tabular}{|p{65mm}|p{65mm}|p{30mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{Programmed TX power (dBm)} & \cellcolor{LightGray}\centering \textbf{Conducted TX power (dBm)} & \cellcolor{LightGray}\centering \textbf{$ I_{RS} $ (mA)} \tabularnewline
+        \tl\centering 14 & \centering 13.0 & \centering 28.4 \tabularnewline
+        \tl\centering 15 & \centering 13.4 & \centering 33.9 \tabularnewline
+        \tl\centering 16 & \centering 16.5 & \centering 101.3 \tabularnewline
+        \tl\centering 17 & \centering 17.6 & \centering 111.7 \tabularnewline
+        \tl\centering 18 & \centering 18.6 & \centering 121.8 \tabularnewline
+        \tl\centering 19 & \centering 19.5 & \centering 131.7 \tabularnewline
+        \tl\centering 20 & \centering 20.2 & \centering 141.3 \tabularnewline
+        \tl\centering 21 & \centering 21.4 & \centering 161.2 \tabularnewline
+        \tl\centering 22 & \centering 22.4 & \centering 181.8 \tabularnewline
+        \tl\centering 23 & \centering 23.0 & \centering 200.6 \tabularnewline
+        \tl\centering 24 & \centering 23.5 & \centering 226.4 \tabularnewline
         \hline
     \end{tabular}
-    \capt{UHFM HW1.0 characteristics}
+    \capt{UHFM HW2.0 transmitter characteristics}
 \end{table}
+
+\subsubsection{Receiver}
+
+All measurements were performed at $ V_{RS}=5\,V $ and a Sigfox downlink frame at $ 869.525\,MHz $.
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{|p{39mm}|p{39mm}|p{39mm}|p{39mm}|}
+        \tl\cellcolor{LightGray}\centering \textbf{LNA state} & \cellcolor{LightGray}\centering \textbf{SAW filter state} & \cellcolor{LightGray}\centering \textbf{Sensitivity (dBm)} & \cellcolor{LightGray}\centering \textbf{$ I_{RS} $ (mA)} \tabularnewline
+        \tl\centering \textcolor{Green}{Enabled} & \centering \textcolor{Green}{Enabled} & \centering -126 & \centering 13.3 \tabularnewline
+        \tl\centering \textcolor{Green}{Enabled} & \centering \textcolor{Red}{Bypassed} & \centering -129 & \centering 13.3 \tabularnewline
+        \tl\centering \centering \textcolor{Red}{Bypassed} & \centering \centering \textcolor{Red}{Bypassed} & \centering -124 & \centering 8.7 \tabularnewline
+        \tl\centering \centering \textcolor{Red}{Bypassed} & \centering \textcolor{Green}{Enabled} & \centering -121 & \centering 8.7\tabularnewline
+        \hline
+    \end{tabular}
+    \capt{UHFM HW2.0 receiver characteristics}
+\end{table}
+
+\newpage
 
 \subsection{Remote monitoring (uplink)}
 
