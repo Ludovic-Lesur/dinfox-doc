@@ -798,18 +798,17 @@ Root bases are defined in each embedded software project:
 
 \rtt {
     \rtl {0x09} {CONFIGURATION\_0} {16} {R/W} {UHFM-CFGR0} {Sigfox radio parameters.}
-    \rtl {0x0A} {CONFIGURATION\_1} {32} {R/W} {UHFM-CFGR1} {Sigfox radio parameters.}
+    \rtl {0x0A} {CONFIGURATION\_1} {32} {R/W} {UHFM-CFGR1} {Sigfox timings parameters.}
     \rtl {0x0B} {STATUS\_1} {32} {R} {UHFM-SR1} {Modem status.}
     \rtl {0x0C} {CONTROL\_1} {32} {R/W} {UHFM-CR1} {Modem control.}
-    \rtl {0x0D} {ANALOG\_DATA\_1} {32} {R} {UHFM-ADR1} {$ V_{RF} $ voltage measurement.}
-    \rtl {0x0E} {SIGFOX\_EP\_ID} {32} {R} {UHFM-SEPID} {Sigfox end-point ID.}
-    \rtl {0x0F} {SIGFOX\_UL\_PAYLOAD\_0} {32} {R/W} {UHFM-SULP0} {Sigfox UL payload bytes 0 to 3.}
-    \rtl {0x10} {SIGFOX\_UL\_PAYLOAD\_1} {32} {R/W} {UHFM-SULP1} {Sigfox UL payload bytes 4 to 7.}
-    \rtl {0x11} {SIGFOX\_UL\_PAYLOAD\_2} {32} {R/W} {UHFM-SULP2} {Sigfox UL payload bytes 8 to 11.}
-    \rtl {0x12} {SIGFOX\_DL\_PAYLOAD\_0} {32} {R} {UHFM-SDLP0} {Sigfox DL payload bytes 0 to 3.}
-    \rtl {0x13} {SIGFOX\_DL\_PAYLOAD\_1} {32} {R} {UHFM-SDLP1} {Sigfox DL payload bytes 4 to 7.}
-    \rtl {0x14} {RADIO\_TEST\_0} {32} {R/W} {UHFM-RT0} {Radio test modes configuration.}
-    \rtl {0x15} {RADIO\_TEST\_1} {16} {R/W} {UHFM-RT1} {Radio test modes configuration.}
+    \rtl {0x0D} {CONTROL\_2} {32} {R/W} {UHFM-CR2} {Modem control.}
+    \rtl {0x0E} {ANALOG\_DATA\_1} {32} {R} {UHFM-ADR1} {$ V_{RF} $ voltage measurement.}
+    \rtl {0x0F} {SIGFOX\_EP\_ID} {32} {R} {UHFM-SEPID} {Sigfox end-point ID.}
+    \rtl {0x10} {SIGFOX\_UL\_PAYLOAD\_0} {32} {R/W} {UHFM-SULP0} {Sigfox UL payload bytes 0 to 3.}
+    \rtl {0x11} {SIGFOX\_UL\_PAYLOAD\_1} {32} {R/W} {UHFM-SULP1} {Sigfox UL payload bytes 4 to 7.}
+    \rtl {0x12} {SIGFOX\_UL\_PAYLOAD\_2} {32} {R/W} {UHFM-SULP2} {Sigfox UL payload bytes 8 to 11.}
+    \rtl {0x13} {SIGFOX\_DL\_PAYLOAD\_0} {32} {R} {UHFM-SDLP0} {Sigfox DL payload bytes 0 to 3.}
+    \rtl {0x14} {SIGFOX\_DL\_PAYLOAD\_1} {32} {R} {UHFM-SDLP1} {Sigfox DL payload bytes 4 to 7.}
 }
 {UHFM specific registers set}
 
@@ -818,38 +817,37 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 0}
 
 \rmt
-{\rmu{2}{|c} & \rmf{4}{|c}{RFP\_TEST\_MODE[4:0]} & \rmf{5}{|c}{UL\_PAYLOAD\_SIZE[4:0]} & \rmf{1}{|c}{BF} & \rmf{3}{|c}{MSGT[2:0]} & \rmf{1}{|c|}{CMSG}}
-{\rmf{8}{|c}{TX\_POWER[7:0]} & \rmf{2}{|c}{NFR[1:0]} & \rmf{2}{|c}{BR[1:0]} & \rmf{4}{|c|}{RC[4:0]}}
+{\rmu{16}{|c|}}
+{\rmf{2}{|c}{SNFR[1:0]} & \rmf{1}{|c}{SBR} & \rmf{3}{|c}{SIGFOX\_RC[2:0]} & \rmf{1}{|c}{RFBY} & \rmf{1}{|c}{RLBY} & \rmf{8}{|c|}{SIGFOX\_TX\_POWER[7:0]}}
 
 \rft {
-    \rfu {31$\,-\,$30} {2} {0b00}
-    \rff {29$\,-\,$26} {4} {RFP\_TEST\_MODE} {0b0000} {Sigfox RFP Addon test mode reference.} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-addon-rfp/blob/master/inc/sigfox_ep_addon_rfp_api.h}{sigfox\_ep\_addon\_rfp\_api.h} file of Sigfox RFP Addon.}
-    \rff {25$\,-\,$21} {5} {UL\_PAYLOAD\_SIZE} {0b00000} {Uplink payload size.} {\textbf{Raw} value in bytes \\ (0 to 12 for protocol V1)}
-    \rff {20} {1} {BF} {0b0} {Bidirectional flag.} {\textbf{0b0} : uplink only \\ \textbf{0b1} : uplink with downlink request}
-    \rff {19$\,-\,$17} {3} {MSGT} {0b000} {Application message type (\texttt{CMSG}$\,=0$) \\ or control message type (\texttt{CMSG}$\,=1$).} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-lib/blob/master/inc/sigfox_types.h}{sigfox\_types.h} file of \\ Sigfox End-Point Library.}
-    \rff {16} {1} {CMSG} {0b0} {Control message flag. (\textcolor{Red}{Disabled at compilation step}).} {\textbf{0b0} : application message \\ \textbf{0b1} : control message}
-    \rff {15$\,-\,$8} {8} {TX\_POWER} {0xBC} {TX power of Sigfox transmission. \\ (\textcolor{Red}{$ 14\,dBm $ fixed at compilation step}).} {\reflink{Table}{rf-power-representation}}
-    \rff {7$\,-\,$6} {2} {NFR} {0b11} {Number of frames per uplink messages (N).} {\textbf{0b00} : no frame (uplink disabled) \\ \textbf{0b01} : 1 frame (N=1) \\ \textbf{0b10} : 2 frames (N=2) \\ \textbf{0b11} : 3 frames (N=3)}
-    \rff {5$\,-\,$4} {2} {BR} {0b00} {Signal bit rate.} {\textbf{0b01} : $ 100\,bps $ \\ \textbf{0b01} : $ 600\,bps $ \\ \textbf{0b10$-$0b11} : \textcolor{Green}{reserved for future use}}
-    \rff {3$\,-\,$0} {4} {RC} {0b0000} {Sigfox radio configuration zone. \\ (\textcolor{Red}{RC1 fixed at compilation step}).} {\textbf{0b0000} : RC1 \\ \textbf{0b0001} : RC2 \\ \textbf{0b0010} : RC3C \\ \textbf{0b0011} : RC3D \\ \textbf{0b0100} : RC4 \\ \textbf{0b0101} : RC5 \\ \textbf{0b0110} : RC6 \\ \textbf{0b0111} : RC7 \\ \textbf{0b1000$-$0b1111} : \textcolor{Green}{reserved for future use}}
+    \rfu {31$\,-\,$16} {16} {0x0000}
+    \rff {15$\,-\,$14} {2} {SNFR} {0b11} {Number of frame(s) per Sigfox uplink message (N).} {\textbf{0b00} : \textcolor{Green}{reserved for future use} \\ \textbf{0b01} : 1 frame (N=1) \\ \textbf{0b10} : 2 frames (N=2) \\ \textbf{0b11} : 3 frames (N=3)}
+    \rff {13} {1} {SBR} {0b1} {Sigfox signal bit rate.} {\textbf{0b0} : $ 100\,bps $ \\ \textbf{0b1} : $ 600\,bps $}
+    \rff {12$\,-\,$10} {4} {SIGFOX\_RC} {0b000} {Sigfox radio configuration zone.} {\textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to 0b000 by software.}  \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ \textbf{0b000} : RC1 \\ \textbf{0b001} : RC2 \\ \textbf{0b010} : RC3 \\ \textbf{0b011} : RC4 \\ \textbf{0b100} : RC5 \\ \textbf{0b101} : RC6 \\ \textbf{0b110} : RC7 \\ \textbf{0b111} : \textcolor{Green}{reserved for future use}}
+    \rff {9} {1} {RFBY} {0b0} {RX filter bypass.} {\textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to 0b0 by hardware.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ \textbf{0b0} : Use SAW filter in radio reception mode. \\ \textbf{0b1} : Bypass SAW filter in radio reception mode.}
+    \rff {8} {1} {RLBY} {0b0} {RX LNA bypass.} {\textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to 0b0 by hardware.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ \textbf{0b0} : Use low noise amplifier in radio reception mode. \\ \textbf{0b1} : Bypass low noise amplifier in radio reception mode.}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_TX\_POWER} {0xBC} {Sigfox transmission power.} {\reflink{Table}{rf-power-representation} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to $14\,dBm$ by software.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ $0\,-\,$14$\,dBm$ ($150\,-\,960\,MHz$) \\ $0\,-\,$22$\,dBm$ ($860\,-\,930\,MHz$)}
 }
 {Configuration register 0}
 {UHFM-CFGR0}
 
 \bigskip
-\textbf{\underline{Note:}} Application message payload is given in the \texttt{SIGFOX\_UL\_PAYLOAD\_x} registers.
+\textbf{\underline{Note:}} The Sigfox RC3 zone is implemented with the low duty cycle (LDC) spectrum access method.
+\medskip \\
+\textbf{\underline{Note:}} The SAW filter is centered on $869\,MHz$ (\textbf{B3725} on HW1.0, \textbf{B2636} on HW2.0).
 
 \newpage
 
 \paragraph{Configuration register 1}
 
 \rmt
-{\rmf{16}{|c|}{TCONF[15:0]}}
-{\rmf{16}{|c|}{TIFU[15:0]}}
+{\rmf{16}{|c|}{SIGFOX\_T\_CONF[15:0]}}
+{\rmf{16}{|c|}{SIGFOX\_T\_IFU[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {TCONF} {0x07D0} {Delay between downlink reception and confirmation frame transmission. \\ (\textcolor{Red}{$ 2000\,ms $ fixed at compilation step}).} {\textbf{Raw} value in $ ms $ \\ (1400 to 4000)}
-    \rff {15$\,-\,$0} {16} {TIFU} {0x03E8} {Delay between uplink frames. \\ (\textcolor{Red}{$ 1000\,ms $ fixed at compilation step}).} {\textbf{Raw} value in $ ms $ \\ (0 to 2000)}
+    \rff {31$\,-\,$16} {16} {SIGFOX\_T\_CONF} {0x07D0} {Delay between Sigfox downlink reception and confirmation frame transmission.} {\textbf{Raw} value in $ ms $ \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to $2000\,ms$ by software.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ $1400-2000\,ms$}
+    \rff {15$\,-\,$0} {16} {SIGFOX\_T\_IFU} {0x03E8} {Delay between Sigfox uplink frames.} {\textbf{Raw} value in $ ms $ \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to $1000\,ms$ by software.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ $0-2000\,ms$}
 }
 {Configuration register 1}
 {UHFM-CFGR1}
@@ -857,14 +855,14 @@ Root bases are defined in each embedded software project:
 \paragraph{Status register 1}
 
 \rmt
-{\rmu{4}{|c} & \rmf{12}{|c|}{BIDIRECTIONAL\_MC[11:0]}}
-{\rmf{8}{|c}{DL\_RSSI[7:0]} & \rmf{8}{|c|}{MESSAGE\_STATUS[7:0]}}
+{\rmu{4}{|c} & \rmf{12}{|c|}{SIGFOX\_BIDIRECTIONAL\_MC[11:0]}}
+{\rmf{8}{|c}{SIGFOX\_DL\_RSSI[7:0]} & \rmf{8}{|c|}{SIGFOX\_MESSAGE\_STATUS[7:0]}}
 
 \rft {
     \rfu {31$\,-\,$28} {4} {0x0}
-    \rff {27$\,-\,$16} {12} {BIDIRECTIONAL\_MC} {$ - $} {Message counter of the last uplink with bidirectional request.} {\textbf{Raw} value.}
-    \rff {15$\,-\,$8} {8} {DL\_RSSI} {0x00} {RSSI of the last downlink message received.} {\reflink{Table}{rf-power-representation}}
-    \rff {7$\,-\,$0} {8} {MESSAGE\_STATUS} {0x00} {Sigfox message transmission status.} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-lib/blob/master/inc/sigfox_ep_api.h}{sigfox\_ep\_api.h} file of \\ Sigfox End-Point Library.}
+    \rff {27$\,-\,$16} {12} {SIGFOX\_BIDIRECTIONAL\_MC} {$ - $} {Message counter of the last Sigfox uplink with bidirectional request.} {\textbf{Raw} value.}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_DL\_RSSI} {0x00} {RSSI of the last Sigfox downlink message received.} {\reflink{Table}{rf-power-representation}}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_MESSAGE\_STATUS} {0x00} {Sigfox message transmission status.} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-lib/blob/master/inc/sigfox_ep_api.h}{sigfox\_ep\_api.h} file of \\ Sigfox End-Point Library.}
 }
 {Status register 1}
 {UHFM-SR1}
@@ -874,22 +872,42 @@ Root bases are defined in each embedded software project:
 \paragraph{Control register 1}
 
 \rmt
-{\rmu{16}{|c|}}
-{\rmu{12}{|c} & \rmf{1}{|c}{RSEN} & \rmf{1}{|c}{CWEN} & \rmf{1}{|c}{TTRG} & \rmf{1}{|c|}{STRG}}
+{\rmu{7}{|c} & \rmf{8}{|c}{CW\_TX\_POWER[7:0]} & \rmf{1}{|c|}{CWEN}}
+{\rmf{4}{|c}{SIGFOX\_RFP\_TEST\_MODE[4:0]} & \rmf{1}{|c}{TTRG} & \rmf{5}{|c}{SIGFOX\_UL\_PAYLOAD\_SIZE[4:0]} & \rmf{1}{|c}{SBF} & \rmf{3}{|c}{SIGFOX\_MSGT[2:0]} & \rmf{1}{|c}{SCMF} & \rmf{1}{|c|}{STRG}}
 
 \rft {
-    \rfu {31$\,-\,$4} {28} {0b0[28]}
-    \rff {3} {1} {RSEN} {0b0} {Continuous RSSI measurement control.} {\textbf{0b0} : stop RSSI measure (W) or RSSI measure stopped (R). \\ \textbf{0b1} : start RSSI measure (W) or RSSI measure running (R).}
-    \rff {2} {1} {CWEN} {0b0} {Continuous wave control.} {\textbf{0b0} : Stop continuous wave (W) or continuous wave stopped (R). \\ \textbf{0b1} : Start continuous wave (W) or continuous wave running (R).}
-    \rff {1} {1} {TTRG} {0b0} {Sigfox RFP Addon test mode trigger.} {\textbf{0b0} : no action (W) or no test mode pending (R). \\ \textbf{0b1} : start test mode (W) or test mode pending (R).}
+    \rfu {31$\,-\,$17} {15} {0b0[15]}
+    \rff {24$\,-\,$17} {8} {CW\_TX\_POWER} {0xBC} {Continuous wave transmission power.} {\reflink{Table}{rf-power-representation} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to $14\,dBm$ by software.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ $0\,-\,$14$\,dBm$ ($150\,-\,960\,MHz$) \\ $0\,-\,$22$\,dBm$ ($860\,-\,930\,MHz$)}
+    \rff {16} {1} {CWEN} {0b0} {Continuous wave control.} {\textbf{0b0} : Stop continuous wave (W) or continuous wave stopped (R). \\ \textbf{0b1} : Start continuous wave (W) or continuous wave running (R).}
+    \rff {15$\,-\,$12} {4} {SIGFOX\_RFP\_TEST\_MODE} {0b0000} {Sigfox RFP Addon test mode reference.} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-addon-rfp/blob/master/inc/sigfox_ep_addon_rfp_api.h}{sigfox\_ep\_addon\_rfp\_api.h} file of Sigfox RFP Addon.}
+    \rff {11} {1} {TTRG} {0b0} {Sigfox RFP Addon test mode trigger.} {\textbf{0b0} : no action (W) or no test mode pending (R). \\ \textbf{0b1} : start test mode (W) or test mode pending (R).}
+    \rff {10$\,-\,$6} {5} {SIGFOX\_UL\_PAYLOAD\_SIZE} {0b00000} {Sigfox uplink payload size.} {\textbf{Raw} value in bytes \\ (0 to 12 for protocol V1)}
+    \rff {5} {1} {SBF} {0b0} {Sigfox bidirectional flag.} {\textbf{0b0} : uplink only \\ \textbf{0b1} : uplink with downlink request}
+    \rff {4$\,-\,$2} {3} {SIGFOX\_MSGT} {0b000} {Sigfox application message type (\texttt{CMSG}$\,=0$) \\ or Sigfox control message type (\texttt{CMSG}$\,=1$).} {See \href{https://github.com/sigfox-tech-radio/sigfox-ep-lib/blob/master/inc/sigfox_types.h}{sigfox\_types.h} file of \\ Sigfox End-Point Library.}
+    \rff {1} {1} {SCMF} {0b0} {Sigfox Control message flag.} {\textcolor{DarkOrchid}{\textbf{HW1.0}} \\ \textcolor{Red}{Fixed to 0b0 by software.} \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ \textbf{0b0} : application message \\ \textbf{0b1} : control message.}
     \rff {0} {1} {STRG} {0b0} {Sigfox message trigger.} {\textbf{0b0} : no action (W) or no transmission pending (R). \\ \textbf{0b1} : send message (W) or message transmission pending (R).}
 }
 {Control register 1}
 {UHFM-CR1}
 
-\textbf{\underline{Note:}} Continuous RSSI measurement and continuous wave are performed on the RF frequency given by the \texttt{RADIO\_TEST\_0} register. Continuous wave power is given by the \texttt{RADIO\_TEST\_1} register.
+\bigskip
+\textbf{\underline{Note:}} Application message payload is given in the \texttt{SIGFOX\_UL\_PAYLOAD\_x} registers.
+\medskip \\
+\textbf{\underline{Note:}} Continuous wave center frequency is given by the \texttt{CONTROL\_2} register.
 
 \newpage
+
+\paragraph{Control register 2}
+
+\rmt
+{\rmf{16}{|c|}{CW\_RF\_FREQUENCY[31:16]}}
+{\rmf{16}{|c|}{CW\_RF\_FREQUENCY[15:0]}}
+
+\rft {
+    \rff {31$\,-\,$0} {32} {CW\_RF\_FREQUENCY} {0x33AD5EC0} {Continuous wave center frequency.} {\textbf{Raw} value in $ Hz $. \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW1.0}} \\ 826$\,-\,$958$\,MHz$ \\ \vspace*{1mm} \textcolor{DarkOrchid}{\textbf{HW2.0}} \\ $150\,-\,960\,MHz$ ($\leq 14\,dBm$) \\ $860\,-\,930\,MHz$ ($> 14\,dBm$) }
+}
+{Control register 2}
+{UHFM-CR2}
 
 \paragraph{Analog data register 1}
 
@@ -904,66 +922,66 @@ Root bases are defined in each embedded software project:
 {Analog data register 1}
 {UHFM-ADR1}
 
+\newpage
+
 \paragraph{Sigfox EP ID register}
 
 \rmt
-{\rmf{8}{|c}{EP\_ID\_BYTE\_3[7:0]} & \rmf{8}{|c|}{EP\_ID\_BYTE\_2[7:0]}}
-{\rmf{8}{|c}{EP\_ID\_BYTE\_1[7:0]} & \rmf{8}{|c|}{EP\_ID\_BYTE\_0[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_EP\_ID\_BYTE\_3[7:0]} & \rmf{8}{|c|}{SIGFOX\_EP\_ID\_BYTE\_2[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_EP\_ID\_BYTE\_1[7:0]} & \rmf{8}{|c|}{SIGFOX\_EP\_ID\_BYTE\_0[7:0]}}
 
 \rft {
-    \rff {31$\,-\,$24} {8} {EP\_ID\_BYTE\_3} {$ - $} {Byte 3 of the Sigfox end-point ID.} {$ - $}
-    \rff {23$\,-\,$16} {8} {EP\_ID\_BYTE\_2} {$ - $} {Byte 2 of the Sigfox end-point ID.} {$ - $}
-    \rff {15$\,-\,$8} {8} {EP\_ID\_BYTE\_1} {$ - $} {Byte 1 of the Sigfox end-point ID.} {$ - $}
-    \rff {7$\,-\,$0} {8} {EP\_ID\_BYTE\_0} {$ - $} {Byte 0 of the Sigfox end-point ID.} {$ - $}
+    \rff {31$\,-\,$24} {8} {SIGFOX\_EP\_ID\_BYTE\_3} {$ - $} {Byte 3 of the Sigfox end-point ID.} {$ - $}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_EP\_ID\_BYTE\_2} {$ - $} {Byte 2 of the Sigfox end-point ID.} {$ - $}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_EP\_ID\_BYTE\_1} {$ - $} {Byte 1 of the Sigfox end-point ID.} {$ - $}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_EP\_ID\_BYTE\_0} {$ - $} {Byte 0 of the Sigfox end-point ID.} {$ - $}
 }
 {Sigfox EP ID register}
 {UHFM-SEPID}
 
-\newpage
-
 \paragraph{Sigfox UL payload register 0}
 
 \rmt
-{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_3[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_2[7:0]}}
-{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_1[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_0[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PAYLOAD\_BYTE\_3[7:0]} & \rmf{8}{|c|}{SIGFOX\_UL\_PAYLOAD\_BYTE\_2[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PAYLOAD\_BYTE\_1[7:0]} & \rmf{8}{|c|}{SIGFOX\_UL\_PAYLOAD\_BYTE\_0[7:0]}}
 
 \rft {
-    \rff {31$\,-\,$24} {8} {UL\_PAYLOAD\_BYTE\_3} {0x00} {Byte 3 of the Sigfox uplink payload.} {$ - $}
-    \rff {23$\,-\,$16} {8} {UL\_PAYLOAD\_BYTE\_2} {0x00} {Byte 2 of the Sigfox uplink payload.} {$ - $}
-    \rff {15$\,-\,$8} {8} {UL\_PAYLOAD\_BYTE\_1} {0x00} {Byte 1 of the Sigfox uplink payload.}  {$ - $}
-    \rff {7$\,-\,$0} {8} {UL\_PAYLOAD\_BYTE\_0} {0x00} {Byte 0 of the Sigfox uplink payload.} {$ - $}
+    \rff {31$\,-\,$24} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_3} {0x00} {Byte 3 of the Sigfox uplink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_2} {0x00} {Byte 2 of the Sigfox uplink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_1} {0x00} {Byte 1 of the Sigfox uplink payload.}  {$ - $}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_0} {0x00} {Byte 0 of the Sigfox uplink payload.} {$ - $}
 }
 {Sigfox UL payload register 0}
 {UHFM-SULP0}
 
+\newpage
+
 \paragraph{Sigfox UL payload register 1}
 
 \rmt
-{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_7[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_6[7:0]}}
-{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_5[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_4[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PAYLOAD\_BYTE\_7[7:0]} & \rmf{8}{|c|}{SIGFOX\_UL\_PAYLOAD\_BYTE\_6[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PAYLOAD\_BYTE\_5[7:0]} & \rmf{8}{|c|}{SIGFOX\_UL\_PAYLOAD\_BYTE\_4[7:0]}}
 
 \rft {
-    \rff {31$\,-\,$24} {8} {UL\_PAYLOAD\_BYTE\_7} {0x00} {Byte 7 of the Sigfox uplink payload.} {$ - $}
-    \rff {23$\,-\,$16} {8} {UL\_PAYLOAD\_BYTE\_6} {0x00} {Byte 6 of the Sigfox uplink payload.} {$ - $}
-    \rff {15$\,-\,$8} {8} {UL\_PAYLOAD\_BYTE\_5} {0x00} {Byte 5 of the Sigfox uplink payload.} {$ - $}
-    \rff {7$\,-\,$0} {8}  {UL\_PAYLOAD\_BYTE\_4} {0x00} {Byte 4 of the Sigfox uplink payload.} {$ - $}
+    \rff {31$\,-\,$24} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_7} {0x00} {Byte 7 of the Sigfox uplink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_6} {0x00} {Byte 6 of the Sigfox uplink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_5} {0x00} {Byte 5 of the Sigfox uplink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8}  {SIGFOX\_UL\_PAYLOAD\_BYTE\_4} {0x00} {Byte 4 of the Sigfox uplink payload.} {$ - $}
 }
 {Sigfox UL payload register 1}
 {UHFM-SULP1}
 
-\newpage
-
 \paragraph{Sigfox UL payload register 2}
 
 \rmt
-{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_11[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_10[7:0]}}
-{\rmf{8}{|c}{UL\_PAYLOAD\_BYTE\_9[7:0]} & \rmf{8}{|c|}{UL\_PAYLOAD\_BYTE\_8[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PAYLOAD\_BYTE\_11[7:0]} & \rmf{8}{|c|}{SIGFOX\_UL\_PAYLOAD\_BYTE\_10[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PAYLOAD\_BYTE\_9[7:0]} & \rmf{8}{|c|}{SIGFOX\_UL\_PAYLOAD\_BYTE\_8[7:0]}}
 
 \rft {
-    \rff {31$\,-\,$24} {8} {UL\_PAYLOAD\_BYTE\_11} {0x00} {Byte 11 of the Sigfox uplink payload.} {$ - $}
-    \rff {23$\,-\,$16} {8} {UL\_PAYLOAD\_BYTE\_10} {0x00} {Byte 10 of the Sigfox uplink payload.} {$ - $}
-    \rff {15$\,-\,$8} {8} {UL\_PAYLOAD\_BYTE\_9} {0x00} {Byte 9 of the Sigfox uplink payload.} {$ - $}
-    \rff {7$\,-\,$0} {8} {UL\_PAYLOAD\_BYTE\_8} {0x00} {Byte 8 of the Sigfox uplink payload.} {$ - $}
+    \rff {31$\,-\,$24} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_11} {0x00} {Byte 11 of the Sigfox uplink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_10} {0x00} {Byte 10 of the Sigfox uplink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_9} {0x00} {Byte 9 of the Sigfox uplink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_UL\_PAYLOAD\_BYTE\_8} {0x00} {Byte 8 of the Sigfox uplink payload.} {$ - $}
 }
 {Sigfox UL payload register 2}
 {UHFM-SULP2}
@@ -973,14 +991,14 @@ Root bases are defined in each embedded software project:
 \paragraph{Sigfox DL payload register 0}
 
 \rmt
-{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_3[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_2[7:0]}}
-{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_1[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_0[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_DL\_PAYLOAD\_BYTE\_3[7:0]} & \rmf{8}{|c|}{SIGFOX\_DL\_PAYLOAD\_BYTE\_2[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_DL\_PAYLOAD\_BYTE\_1[7:0]} & \rmf{8}{|c|}{SIGFOX\_DL\_PAYLOAD\_BYTE\_0[7:0]}}
 
 \rft {
-    \rff {31$\,-\,$24} {8} {DL\_PAYLOAD\_BYTE\_3} {0x00} {Byte 3 of the Sigfox downlink payload.} {$ - $}
-    \rff {23$\,-\,$16} {8} {DL\_PAYLOAD\_BYTE\_2} {0x00} {Byte 2 of the Sigfox downlink payload.} {$ - $}
-    \rff {15$\,-\,$8} {8} {DL\_PAYLOAD\_BYTE\_1} {0x00} {Byte 1 of the Sigfox downlink payload.} {$ - $}
-    \rff {7$\,-\,$0} {8} {DL\_PAYLOAD\_BYTE\_0} {0x00} {Byte 0 of the Sigfox downlink payload.} {$ - $}
+    \rff {31$\,-\,$24} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_3} {0x00} {Byte 3 of the Sigfox downlink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_2} {0x00} {Byte 2 of the Sigfox downlink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_1} {0x00} {Byte 1 of the Sigfox downlink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_0} {0x00} {Byte 0 of the Sigfox downlink payload.} {$ - $}
 }
 {Sigfox DL payload register 0}
 {UHFM-SDLP0}
@@ -988,45 +1006,17 @@ Root bases are defined in each embedded software project:
 \paragraph{Sigfox DL payload register 1}
 
 \rmt
-{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_7[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_6[7:0]}}
-{\rmf{8}{|c}{DL\_PAYLOAD\_BYTE\_5[7:0]} & \rmf{8}{|c|}{DL\_PAYLOAD\_BYTE\_4[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_DL\_PAYLOAD\_BYTE\_7[7:0]} & \rmf{8}{|c|}{SIGFOX\_DL\_PAYLOAD\_BYTE\_6[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_DL\_PAYLOAD\_BYTE\_5[7:0]} & \rmf{8}{|c|}{SIGFOX\_DL\_PAYLOAD\_BYTE\_4[7:0]}}
 
 \rft {
-    \rff {31$\,-\,$24} {8} {DL\_PAYLOAD\_BYTE\_7} {0x00} {Byte 7 of the Sigfox downlink payload.} {$ - $}
-    \rff {23$\,-\,$16} {8} {DL\_PAYLOAD\_BYTE\_6} {0x00} {Byte 6 of the Sigfox downlink payload.} {$ - $}
-    \rff {15$\,-\,$8} {8} {DL\_PAYLOAD\_BYTE\_5} {0x00} {Byte 5 of the Sigfox downlink payload.} {$ - $}
-    \rff {7$\,-\,$0} {8} {DL\_PAYLOAD\_BYTE\_4} {0x00} {Byte 4 of the Sigfox downlink payload.} {$ - $}
+    \rff {31$\,-\,$24} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_7} {0x00} {Byte 7 of the Sigfox downlink payload.} {$ - $}
+    \rff {23$\,-\,$16} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_6} {0x00} {Byte 6 of the Sigfox downlink payload.} {$ - $}
+    \rff {15$\,-\,$8} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_5} {0x00} {Byte 5 of the Sigfox downlink payload.} {$ - $}
+    \rff {7$\,-\,$0} {8} {SIGFOX\_DL\_PAYLOAD\_BYTE\_4} {0x00} {Byte 4 of the Sigfox downlink payload.} {$ - $}
 }
 {Sigfox DL payload register 1}
 {UHFM-SDLP1}
-
-\newpage
-
-\paragraph{Radio test register 0}
-
-\rmt
-{\rmf{16}{|c|}{RF\_FREQUENCY[31:16]}}
-{\rmf{16}{|c|}{RF\_FREQUENCY[15:0]}}
-
-\rft {
-    \rff {31$\,-\,$0} {32} {RF\_FREQUENCY} {0x33AD5EC0} {RF center frequency used for continuous wave, RSSI and downlink decoder.} {\textbf{Raw} value in $ Hz $. \\ (826000000 to 958000000)}
-}
-{Radio test register 0}
-{UHFM-RT0}
-
-\paragraph{Radio test register 1}
-
-\rmt
-{\rmu{16}{|c|}}
-{\rmf{8}{|c}{RSSI[7:0]} & \rmf{8}{|c|}{TX\_POWER[7:0]}}
-
-\rft {
-    \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$8} {8} {RSSI} {0x00} {Radio RSSI read during continuous RSSI measurement.} {\reflink{Table}{rf-power-representation}}
-    \rff {7$\,-\,$0} {8} {TX\_POWER} {0xBC} {Radio TX power used during continuous wave.} {\reflink{Table}{rf-power-representation}}
-}
-{Radio test register 1}
-{UHFM-RT1}
 
 \newpage
 
@@ -1082,11 +1072,11 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 1}
 
 \rmt
-{\rmf{16}{|c|}{FREQUENCY[31:16]}}
-{\rmf{16}{|c|}{FREQUENCY[15:0]}}
+{\rmf{16}{|c|}{TP\_FREQUENCY[31:16]}}
+{\rmf{16}{|c|}{TP\_FREQUENCY[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$0} {32} {FREQUENCY} {0x00989680} {Timepulse signal frequency.} {\textbf{Raw} value in $ Hz $. \\ (1 to 10000000)}
+    \rff {31$\,-\,$0} {32} {TP\_FREQUENCY} {0x00989680} {Timepulse signal frequency.} {\textbf{Raw} value in $ Hz $. \\ (1 to 10000000)}
 }
 {Configuration register 1}
 {GPSM-CFGR1}
@@ -1095,11 +1085,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{9}{|c} & \rmf{7}{|c|}{DUTY\_CYCLE[6:0]}}
+{\rmu{9}{|c} & \rmf{7}{|c|}{TP\_DUTY\_CYCLE[6:0]}}
 
 \rft {
     \rfu {31$\,-\,$7} {25} {0b0[25]}
-    \rff {6$\,-\,$0} {7} {DUTY\_CYCLE} {0x32} {Timepulse signal duty cycle.} {\textbf{Raw} value in \% \\ (0 to 100)}
+    \rff {6$\,-\,$0} {7} {TP\_DUTY\_CYCLE} {0x32} {Timepulse signal duty cycle.} {\textbf{Raw} value in \% \\ (0 to 100)}
 }
 {Configuration register 2}
 {GPSM-CFGR2}
@@ -1170,7 +1160,7 @@ Root bases are defined in each embedded software project:
 
 \rft {
     \rfu {31$\,-\,$24} {12} {0x000}
-    \rff {23$\,-\,$16} {8} {YEAR} {0x00} {UTC year.} {\reflink{Table}{year-representation}}
+    \rff {23$\,-\,$16} {8} {YEAR} {0xFF} {UTC year.} {\reflink{Table}{year-representation}}
     \rfu {15$\,-\,$12} {4} {0b0000}
     \rff {11$\,-\,$8} {4} {MONTH} {0b0000} {UTC month.} {\textbf{Raw} value ($ 1 - 12 $)}
     \rff {7$\,-\,$3} {5} {DATE} {0b00000} {UTC date.} {\textbf{Raw} value ($ 1 - 31 $)}
