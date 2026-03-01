@@ -431,13 +431,13 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 0}
 
 \rmt
-{\rmu{4}{|c} & \rmf{12}{|c|}{TMCU[11:0]}}
-{\rmf{16}{|c|}{VMCU[15:0]}}
+{\rmu{4}{|c} & \rmf{12}{|c|}{MCU\_TEMPERATURE[11:0]}}
+{\rmf{16}{|c|}{MCU\_VOLTAGE[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$28} {4} {0b0000}
-    \rff {27$\,-\,$16} {12} {TMCU} {0x7FF} {MCU temperature.} {\reflink{Table}{temperature-representation}}
-    \rff {15$\,-\,$0} {16} {VMCU} {0xFFFF} {MCU supply voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {27$\,-\,$16} {12} {MCU\_TEMPERATURE} {0x7FF} {MCU internal temperature.} {\reflink{Table}{temperature-representation}}
+    \rff {15$\,-\,$0} {16} {MCU\_VOLTAGE} {0xFFFF} {MCU supply voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 0}
 {ADR0}
@@ -461,11 +461,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{14}{|c} & \rmf{1}{|c|}{RLFH} & \rmf{1}{|c|}{BMSF}}
+{\rmu{14}{|c} & \rmf{1}{|c|}{RCFH} & \rmf{1}{|c|}{BMSF}}
 
 \rft {
     \rfu {31$\,-\,$2} {30} {0b0[30]}
-    \rff {1} {1} {RLFH} {$ - $} {Relay control mode (set at compilation step according to hardware).} {\textbf{0b0} : Relay controlled by the MCU. \\ \textbf{0b1} : Relay controlled by hardware.}
+    \rff {1} {1} {RCFH} {$ - $} {Relay control mode (set at compilation step according to hardware).} {\textbf{0b0} : Relay controlled by the MCU. \\ \textbf{0b1} : Relay controlled by hardware.}
     \rff {0} {1} {BMSF} {$ - $} {BMS mode flag (set at compilation step).} {\textbf{0b0} : BMS mode disabled. \\ \textbf{0b1} : BMS mode enabled.}
 }
 {Flags register 1}
@@ -476,12 +476,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 0}
 
 \rmt
-{\rmf{16}{|c|}{VBATT\_THRESHOLD\_HIGH}}
-{\rmf{16}{|c|}{VBATT\_THRESHOLD\_LOW}}
+{\rmf{16}{|c|}{BMS\_INPUT\_VOLTAGE\_THH}}
+{\rmf{16}{|c|}{BMS\_INPUT\_VOLTAGE\_THL}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VBATT\_THRESHOLD\_HIGH} {$ - $} {High voltage threshold of the BMS hysteresis.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VBATT\_THRESHOLD\_LOW} {$ - $} {Low voltage threshold of the BMS hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {BMS\_INPUT\_VOLTAGE\_THH} {$ - $} {High input voltage threshold of the BMS hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {BMS\_INPUT\_VOLTAGE\_THL} {$ - $} {Low input voltage threshold of the BMS hysteresis.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 0}
 {LVRM-CFGR0}
@@ -492,11 +492,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{IOUT\_OFFSET[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_CURRENT\_OFFSET[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {IOUT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {OUTPUT\_CURRENT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
 }
 {Configuration register 1}
 {LVRM-CFGR1}
@@ -505,11 +505,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{14}{|c} & \rmf{2}{|c|}{RLSTST}}
+{\rmu{14}{|c} & \rmf{2}{|c|}{RCS}}
 
 \rft {
     \rfu {31$\,-\,$2} {30} {0b0[30]}
-    \rff {1$\,-\,$0} {2} {RLSTST} {0b11} {Relay state status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : NC or R path closed. \\ \textbf{0b01} : NO or S path closed.}
+    \rff {1$\,-\,$0} {2} {RCS} {0b11} {Relay control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : NC or R path closed. \\ \textbf{0b01} : NO or S path closed.}
 }
 {Status register 1}
 {LVRM-SR1}
@@ -520,11 +520,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{15}{|c} & \rmf{1}{|c|}{RLST}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{RC}}
 
 \rft {
     \rfu {31$\,-\,$1} {31} {0b0[31]}
-    \rff {0} {1} {RLST} {0b0} {Relay state control.} {\textbf{0b0} : close NC or R path. \\ \textbf{0b1} : close NO or S path.}
+    \rff {0} {1} {RC} {0b0} {Relay control.} {\textbf{0b0} : close NC or R path. \\ \textbf{0b1} : close NO or S path.}
 }
 {Control register 1}
 {LVRM-CR1}
@@ -532,12 +532,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VOUT[15:0]}}
-{\rmf{16}{|c|}{VCOM[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{INPUT\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VOUT} {0xFFFF} {Relay output voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VCOM} {0xFFFF} {Relay common input voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {OUTPUT\_VOLTAGE} {0xFFFF} {Relay output voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {INPUT\_VOLTAGE} {0xFFFF} {Relay common input voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {LVRM-ADR1}
@@ -546,11 +546,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{IOUT[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_CURRENT[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {IOUT} {0xFFFF} {Relay output current.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {OUTPUT\_CURRENT} {0xFFFF} {Relay output current.} {\reflink{Table}{current-representation}}
 }
 {Analog data register 2}
 {LVRM-ADR2}
@@ -575,14 +575,14 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{12}{|c} & \rmf{1}{|c}{BKFH} & \rmu{1}{|c} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CEFH}}
+{\rmu{12}{|c} & \rmf{1}{|c}{BKFH} & \rmu{1}{|c} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CCFH}}
 
 \rft {
     \rfu {31$\,-\,$4} {28} {0x0000000}
     \rff {3} {1} {BKFH} {$ - $} {Backup output control mode (set at compilation step according to hardware).} {\textbf{0b0} : Backup output controlled by the MCU. \\ \textbf{0b1} : Backup output controlled by hardware.}
     \rfu {2} {1} {0b0}
     \rff {1} {1} {CSFH} {$ - $} {Charge status mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge status connected to the MCU. \\ \textbf{0b1} : Charge status connected in hardware.}
-    \rff {0} {1} {CEFH} {$ - $} {Charge control mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge controlled by the MCU. \\ \textbf{0b1} : Charge controlled by hardware.}
+    \rff {0} {1} {CCFH} {$ - $} {Charge control mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge controlled by the MCU. \\ \textbf{0b1} : Charge controlled by hardware.}
 }
 {Flags register 1}
 {BPSM-FR1}
@@ -592,28 +592,28 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 0}
 
 \rmt
-{\rmu{8}{|c} & \rmf{8}{|c|}{CHEN\_TOGGLE\_PERIOD}}
-{\rmf{16}{|c|}{CHEN\_THRESHOLD}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHARGE\_TOGGLE\_PERIOD}}
+{\rmf{16}{|c|}{CHARGE\_SOURCE\_VOLTAGE\_TH}}
 
 \rft {
     \rfu {31$\,-\,$24} {8} {0x00}
-    \rff {23$\,-\,$16} {8} {CHEN\_TOGGLE\_PERIOD} {$ - $} {Charge toggle period.} {\reflink{Table}{time-representation}}
-    \rff {15$\,-\,$0} {16} {CHEN\_THRESHOLD} {$ - $} {Voltage threshold to set \texttt{CHEN} bit.} {\reflink{Table}{voltage-representation}}
+    \rff {23$\,-\,$16} {8} {CHARGE\_TOGGLE\_PERIOD} {$ - $} {Charge toggle period (LTC4079 latch-off workaround).} {\reflink{Table}{time-representation}}
+    \rff {15$\,-\,$0} {16} {CHARGE\_SOURCE\_VOLTAGE\_TH} {$ - $} {Minimum source voltage required to set the \texttt{CHEN} bit.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 0}
 {BPSM-CFGR0}
 
-\textbf{\underline{Note:}} this register is only used when \texttt{CHMD = 0b1} and \texttt{CEFH = 0b0}.
+\textbf{\underline{Note:}} this register is only used when \texttt{CHMD = 0b1} and \texttt{CCFH = 0b0}.
 
 \paragraph{Configuration register 1}
 
 \rmt
-{\rmf{16}{|c|}{LVF\_HIGH\_THRESHOLD}}
-{\rmf{16}{|c|}{LVF\_LOW\_THRESHOLD}}
+{\rmf{16}{|c|}{LVF\_STORAGE\_VOLTAGE\_THH}}
+{\rmf{16}{|c|}{LVF\_STORAGE\_VOLTAGE\_THL}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {LVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {LVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {LVF\_STORAGE\_VOLTAGE\_THH} {$ - $} {High storage voltage threshold of the LVF hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {LVF\_STORAGE\_VOLTAGE\_THL} {$ - $} {Low storage voltage threshold of the LVF hysteresis.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 1}
 {BPSM-CFGR1}
@@ -623,12 +623,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 2}
 
 \rmt
-{\rmf{16}{|c|}{CVF\_HIGH\_THRESHOLD}}
-{\rmf{16}{|c|}{CVF\_LOW\_THRESHOLD}}
+{\rmf{16}{|c|}{CVF\_STORAGE\_VOLTAGE\_THH}}
+{\rmf{16}{|c|}{CVF\_STORAGE\_VOLTAGE\_THL}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {CVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {CVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {CVF\_STORAGE\_VOLTAGE\_THH} {$ - $} {High storage voltage threshold of the CVF hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CVF\_STORAGE\_VOLTAGE\_THL} {$ - $} {Low storage voltage threshold of the CVF hysteresis.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 2}
 {BPSM-CFGR2}
@@ -637,16 +637,16 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{6}{|c} & \rmf{1}{|c}{CVF} & \rmf{1}{|c}{LVF} &  \rmu{2}{|c} & \rmf{2}{|c}{CHRGST} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
+{\rmu{6}{|c} & \rmf{1}{|c}{CVF} & \rmf{1}{|c}{LVF} &  \rmu{2}{|c} & \rmf{2}{|c}{CHST} & \rmf{2}{|c}{CHCS} & \rmf{2}{|c|}{BKCS}}
 
 \rft {
     \rfu {31$\,-\,$10} {22} {0b0[22]}
     \rff {9} {1} {CVF} {0b0} {Critical voltage detector flag.} {\textbf{0b0} : storage element voltage is above the critical threshold. \\ \textbf{0b1} : storage element voltage is under the critical threshold.}
     \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : storage element voltage is above the low threshold. \\ \textbf{0b1} : storage element voltage is under the low threshold.}
     \rfu {7$\,-\,$6} {2} {0b00}
-    \rff {5$\,-\,$4} {2} {CHRGST} {0b11} {Storage element charging status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge pending. \\ \textbf{0b01} : charge complete.}
-    \rff {3$\,-\,$2} {2} {CHENST} {0b11} {Storage element charging enable status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
-    \rff {1$\,-\,$0} {2} {BKENST} {0b11} {Backup output state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : backup output disabled. \\ \textbf{0b01} : backup output enabled.}
+    \rff {5$\,-\,$4} {2} {CHST} {0b11} {Storage element charging status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge pending. \\ \textbf{0b01} : charge complete.}
+    \rff {3$\,-\,$2} {2} {CHCS} {0b11} {Storage element charging control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
+    \rff {1$\,-\,$0} {2} {BKCS} {0b11} {Backup output control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : backup output disabled. \\ \textbf{0b01} : backup output enabled.}
 }
 {Status register 1}
 {BPSM-SR1}
@@ -673,12 +673,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VSTR[15:0]}}
-{\rmf{16}{|c|}{VSRC[15:0]}}
+{\rmf{16}{|c|}{STORAGE\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{SOURCE\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VSTR} {0xFFFF} {Storage element voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VSRC} {0xFFFF} {Source voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {STORAGE\_VOLTAGE} {0xFFFF} {Storage element voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {SOURCE\_VOLTAGE} {0xFFFF} {Input source voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {BPSM-ADR1}
@@ -687,11 +687,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{VBKP[15:0]}}
+{\rmf{16}{|c|}{BACKUP\_VOLTAGE[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {VBKP} {0xFFFF} {Backup voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {BACKUP\_VOLTAGE} {0xFFFF} {Backup output voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 2}
 {BPSM-ADR2}
@@ -714,11 +714,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{15}{|c} & \rmf{1}{|c|}{DDFH}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{RCFH}}
 
 \rft {
     \rfu {31$\,-\,$1} {31} {0b0[31]}
-    \rff {0} {1} {DDFH} {$ - $} {DC$-$DC control mode (set at compilation step according to hardware).} {\textbf{0b0} : DC$-$DC controlled by the MCU. \\ \textbf{0b1} : DC$-$DC controlled by hardware.}
+    \rff {0} {1} {RCFH} {$ - $} {DC$-$DC control mode (set at compilation step according to hardware).} {\textbf{0b0} : DC$-$DC controlled by the MCU. \\ \textbf{0b1} : DC$-$DC controlled by hardware.}
 }
 {Flags register 1}
 {DDRM-FR1}
@@ -727,11 +727,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{IOUT\_OFFSET[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_CURRENT\_OFFSET[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {IOUT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {OUTPUT\_CURRENT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
 }
 {Configuration register 0}
 {DDRM-CFGR0}
@@ -742,11 +742,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{14}{|c} & \rmf{2}{|c|}{DDENST}}
+{\rmu{14}{|c} & \rmf{2}{|c|}{RCS}}
 
 \rft {
     \rfu {31$\,-\,$2} {30} {0b0[30]}
-    \rff {1$\,-\,$0} {2} {DDENST} {0b11} {DC$-$DC converter state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : DC$-$DC output disabled. \\ \textbf{0b01} : DC$-$DC output enabled.}
+    \rff {1$\,-\,$0} {2} {RCS} {0b11} {DC$-$DC converter control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : DC$-$DC output disabled. \\ \textbf{0b01} : DC$-$DC output enabled.}
 }
 {Status register 1}
 {DDRM-SR1}
@@ -755,11 +755,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{15}{|c} & \rmf{1}{|c|}{DDEN}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{REN}}
 
 \rft {
     \rfu {31$\,-\,$1} {31} {0b0[31]}
-    \rff {0} {1} {DDEN} {0b0} {DC$-$DC converter state control.} {\textbf{0b0} : disable DC$-$DC output \\ \textbf{0b1} : enable DC$-$DC output.}
+    \rff {0} {1} {REN} {0b0} {DC$-$DC converter control.} {\textbf{0b0} : disable DC$-$DC output \\ \textbf{0b1} : enable DC$-$DC output.}
 }
 {Control register 1}
 {DDRM-CR1}
@@ -769,12 +769,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VOUT[15:0]}}
-{\rmf{16}{|c|}{VIN[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{INPUT\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VOUT} {0xFFFF} {DC$-$DC converter output voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VIN} {0xFFFF} {DC$-$DC converter input voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {OUTPUT\_VOLTAGE} {0xFFFF} {DC$-$DC converter output voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {INPUT\_VOLTAGE} {0xFFFF} {DC$-$DC converter input voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {DDRM-ADR1}
@@ -783,11 +783,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{IOUT[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_CURRENT[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {IOUT} {0xFFFF} {DC$-$DC converter output current.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {OUTPUT\_CURRENT} {0xFFFF} {DC$-$DC converter output current.} {\reflink{Table}{current-representation}}
 }
 {Analog data register 2}
 {DDRM-ADR2}
@@ -912,12 +912,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VRF\_RX[15:0]}}
-{\rmf{16}{|c|}{VRF\_TX[15:0]}}
+{\rmf{16}{|c|}{RADIO\_RX\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{RADIO\_TX\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VRF\_RX} {0xFFFF} {Radio front-end voltage in RX.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VRF\_TX} {0xFFFF} {Radio front-end voltage in TX.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {RADIO\_RX\_VOLTAGE} {0xFFFF} {Radio front-end voltage measured in RX state.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {RADIO\_TX\_VOLTAGE} {0xFFFF} {Radio front-end voltage measured in TX state.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {UHFM-ADR1}
@@ -1100,15 +1100,15 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{10}{|c} & \rmf{2}{|c}{BKENST} & \rmf{1}{|c}{PWST} & \rmf{1}{|c}{TPST} & \rmf{1}{|c}{GFS} & \rmf{1}{|c|}{TFS}}
+{\rmu{10}{|c} & \rmf{2}{|c}{BKCS} & \rmf{1}{|c}{PWST} & \rmf{1}{|c}{TPST} & \rmf{1}{|c}{GFST} & \rmf{1}{|c|}{TFST}}
 
 \rft {
     \rfu {31$\,-\,$6} {26} {0b0[26]}
-    \rff {5$\,-\,$4} {2} {BKENST} {0b11} {GPS backup voltage status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : GPS backup disabled. \\ \textbf{0b01} : GPS backup enabled.}
+    \rff {5$\,-\,$4} {2} {BKCS} {0b11} {GPS backup control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : GPS backup disabled. \\ \textbf{0b01} : GPS backup enabled.}
     \rff {3} {1} {PWST} {0b0} {GPS power supply status.} {{0b0} : GPS power supply is off. \\ \textbf{0b1} : GPS power supply is on.}
     \rff {2} {1} {TPST} {0b0} {GPS timepulse status.} {\textbf{0b0} : GPS timepulse stopped. \\ \textbf{0b1} : GPS timepulse running.}
-    \rff {1} {1} {GFS} {0b0} {GPS geo-location fix status.} {\textbf{0b0} : timeout. \\ \textbf{0b1} : success.}
-    \rff {0} {1} {TFS} {0b0} {GPS time fix status.} {\textbf{0b0} : timeout. \\ \textbf{0b1} : success.}
+    \rff {1} {1} {GFST} {0b0} {GPS geo-location fix status.} {\textbf{0b0} : timeout. \\ \textbf{0b1} : success.}
+    \rff {0} {1} {TFST} {0b0} {GPS time fix status.} {\textbf{0b0} : timeout. \\ \textbf{0b1} : success.}
 }
 {Status register 1}
 {GPSM-SR1}
@@ -1140,12 +1140,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VANT[15:0]}}
-{\rmf{16}{|c|}{VGPS[15:0]}}
+{\rmf{16}{|c|}{ANTENNA\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{GPS\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VANT} {0xFFFF} {Active antenna voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VGPS} {0xFFFF} {GPS module voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {ANTENNA\_VOLTAGE} {0xFFFF} {Active antenna voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {GPS\_VOLTAGE} {0xFFFF} {GPS module voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {GPSM-ADR1}
@@ -1329,12 +1329,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VAIN1[15:0]}}
-{\rmf{16}{|c|}{VAIN0[15:0]}}
+{\rmf{16}{|c|}{AIN1\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{AIN0\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VAIN1} {0xFFFF} {$ V_{AIN1} $ voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VAIN0} {0xFFFF} {$ V_{AIN0} $ voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {AIN1\_VOLTAGE} {0xFFFF} {$ V_{AIN1} $ voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {AIN0\_VOLTAGE} {0xFFFF} {$ V_{AIN0} $ voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {SM-ADR1}
@@ -1342,12 +1342,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 2}
 
 \rmt
-{\rmf{16}{|c|}{VAIN3[15:0]}}
-{\rmf{16}{|c|}{VAIN2[15:0]}}
+{\rmf{16}{|c|}{AIN3\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{AIN2\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VAIN3} {0xFFFF} {$ V_{AIN3} $ voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VAIN2} {0xFFFF} {$ V_{AIN2} $ voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {AIN3\_VOLTAGE} {0xFFFF} {$ V_{AIN3} $ voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {AIN2\_VOLTAGE} {0xFFFF} {$ V_{AIN2} $ voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 2}
 {SM-ADR2}
@@ -1355,14 +1355,14 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 3}
 
 \rmt
-{\rmu{8}{|c} & \rmf{8}{|c|}{HAMB[7:0]}}
-{\rmu{4}{|c} & \rmf{12}{|c|}{TAMB[11:0]}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{HUMIDITY[7:0]}}
+{\rmu{4}{|c} & \rmf{12}{|c|}{TEMPERATURE[11:0]}}
 
 \rft {
     \rfu {31$\,-\,$24} {8} {0x00}
-    \rff {23$\,-\,$16} {8} {HAMB} {0xFF} {Ambient humidity.} {\textbf{Raw} value in \%.}
+    \rff {23$\,-\,$16} {8} {HUMIDITY} {0xFF} {Ambient humidity.} {\textbf{Raw} value in \%.}
     \rfu {15$\,-\,$12} {4} {0b0000}
-    \rff {11$\,-\,$0} {12} {TAMB} {0x7FF} {Ambient temperature.} {\reflink{Table}{temperature-representation}}
+    \rff {11$\,-\,$0} {12} {TEMPERATURE} {0x7FF} {Ambient temperature.} {\reflink{Table}{temperature-representation}}
 }
 {Analog data register 3}
 {SM-ADR3}
@@ -1403,11 +1403,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{15}{|c} & \rmf{1}{|c|}{RFH}}
+{\rmu{15}{|c} & \rmf{1}{|c|}{RCFH}}
 
 \rft {
     \rfu {31$\,-\,$1} {31} {0b0[31]}
-    \rff {0} {1} {RFH} {$ - $} {Regulator control mode (set at compilation step according to hardware).} {\textbf{0b0} : Regulator controlled by the MCU. \\ \textbf{0b1} : Regulator controlled by hardware.}
+    \rff {0} {1} {RCFH} {$ - $} {Regulator control mode (set at compilation step according to hardware).} {\textbf{0b0} : Regulator controlled by the MCU. \\ \textbf{0b1} : Regulator controlled by hardware.}
 }
 {Flags register 1}
 {RRM-FR1}
@@ -1416,11 +1416,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{IOUT\_OFFSET[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_CURRENT\_OFFSET[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {IOUT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {OUTPUT\_CURRENT\_OFFSET} {$ - $} {Output current offset calibration value.} {\reflink{Table}{current-representation}}
 }
 {Configuration register 0}
 {RRM-CFGR0}
@@ -1431,11 +1431,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{14}{|c} & \rmf{2}{|c|}{RENST}}
+{\rmu{14}{|c} & \rmf{2}{|c|}{RCS}}
 
 \rft {
     \rfu {31$\,-\,$2} {30} {0b0[30]}
-    \rff {1$\,-\,$0} {2} {RENST} {0b11} {Regulator state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : Regulator output disabled. \\ \textbf{0b01} : Regulator output enabled.}
+    \rff {1$\,-\,$0} {2} {RCS} {0b11} {Regulator control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : Regulator output disabled. \\ \textbf{0b01} : Regulator output enabled.}
 }
 {Status register 1}
 {RRM-SR1}
@@ -1458,12 +1458,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VOUT[15:0]}}
-{\rmf{16}{|c|}{VIN[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{INPUT\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VOUT} {0xFFFF} {Regulator output voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VIN} {0xFFFF} {Regulator input voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {OUTPUT\_VOLTAGE} {0xFFFF} {Regulator output voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {INPUT\_VOLTAGE} {0xFFFF} {Regulator input voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {RRM-ADR1}
@@ -1472,11 +1472,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{IOUT[15:0]}}
+{\rmf{16}{|c|}{OUTPUT\_CURRENT[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {IOUT} {0xFFFF} {Regulator output current.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {OUTPUT\_CURRENT} {0xFFFF} {Regulator output current.} {\reflink{Table}{current-representation}}
 }
 {Analog data register 2}
 {RRM-ADR2}
@@ -1498,13 +1498,13 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{8}{|c} & \rmf{8}{|c|}{SIGFOX\_DL\_PERIOD[7:0]}}
-{\rmf{8}{|c}{SIGFOX\_UL\_PERIOD[7:0]} & \rmf{8}{|c|}{NODES\_SCAN\_PERIOD[7:0]}}
+{\rmf{8}{|c}{SIGFOX\_UL\_PERIOD[7:0]} & \rmf{8}{|c|}{NODE\_SCAN\_PERIOD[7:0]}}
 
 \rft {
     \rfu {31$\,-\,$24} {8} {0x00}
     \rff {23$\,-\,$16} {8} {SIGFOX\_DL\_PERIOD} {$ - $} {Remote control period.} {\reflink{Table}{time-representation}}
     \rff {15$\,-\,$8} {8} {SIGFOX\_UL\_PERIOD} {$ - $} {Remote monitoring period.} {\reflink{Table}{time-representation}}
-    \rff {7$\,-\,$0} {8} {NODES\_SCAN\_PERIOD} {$ - $} {Automatic nodes scan period.} {\reflink{Table}{time-representation}}
+    \rff {7$\,-\,$0} {8} {NODE\_SCAN\_PERIOD} {$ - $} {Automatic node scanning period.} {\reflink{Table}{time-representation}}
 }
 {Configuration register 0}
 {DMM-CFGR0}
@@ -1513,11 +1513,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{8}{|c} & \rmf{8}{|c|}{NODES\_COUNT[7:0]}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{NODE\_COUNT[7:0]}}
 
 \rft {
     \rfu {31$\,-\,$8} {24} {0x000000}
-    \rff {7$\,-\,$0} {8} {NODES\_COUNT} {$ - $} {Number of nodes connected on the bus.} {\textbf{Raw} value.}
+    \rff {7$\,-\,$0} {8} {NODE\_COUNT} {$ - $} {Number of node(s) connected on the bus.} {\textbf{Raw} value.}
 }
 {Status register 1}
 {DMM-SR1}
@@ -1540,12 +1540,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VHMI[15:0]}}
-{\rmf{16}{|c|}{VRS[15:0]}}
+{\rmf{16}{|c|}{HMI\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{RS485\_BUS\_VOLTAGE[15:0]}}
 
-\rft { \rfh
-    \rff {31$\,-\,$16} {16} {VHMI} {0xFFFF} {HMI voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VRS} {0xFFFF} {RS485 bus power supply rail.} {\reflink{Table}{voltage-representation}}
+\rft {
+    \rff {31$\,-\,$16} {16} {HMI\_VOLTAGE} {0xFFFF} {HMI voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {RS485\_BUS\_VOLTAGE} {0xFFFF} {RS485 bus power supply rail.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {DMM-ADR1}
@@ -1554,11 +1554,11 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{16}{|c|}{VUSB[15:0]}}
+{\rmf{16}{|c|}{USB\_VOLTAGE[15:0]}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \rff {15$\,-\,$0} {16} {VUSB} {0xFFFF} {USB voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {USB\_VOLTAGE} {0xFFFF} {USB voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 2}
 {DMM-ADR2}
@@ -1936,7 +1936,7 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{8}{|c}{SHUNT\_RESISTOR} & \rmu{4}{|c} & \rmf{1}{|c}{BKFH} & \rmf{1}{|c}{CLFH} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CEFH}}
+{\rmf{8}{|c}{SHUNT\_RESISTOR} & \rmu{4}{|c} & \rmf{1}{|c}{BKFH} & \rmf{1}{|c}{CLFH} & \rmf{1}{|c}{CSFH} & \rmf{1}{|c|}{CCFH}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
@@ -1945,7 +1945,7 @@ Root bases are defined in each embedded software project:
     \rff {3} {1} {BKFH} {$ - $} {Backup output control mode (set at compilation step according to hardware).} {\textbf{0b0} : Backup output controlled by the MCU. \\ \textbf{0b1} : Backup output controlled by hardware.}
     \rff {2} {1} {CLFH} {$ - $} {LED control mode (set at compilation step according to hardware).} {\textbf{0b0} : LED controlled by the MCU. \\ \textbf{0b1} : LED controlled by hardware.}
     \rff {1} {1} {CSFH} {$ - $} {Charge status mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge status connected to the MCU. \\ \textbf{0b1} : Charge status connected in hardware.}
-    \rff {0} {1} {CEFH} {$ - $} {Charge control mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge controlled by the MCU. \\ \textbf{0b1} : Charge controlled by hardware.}
+    \rff {0} {1} {CCFH} {$ - $} {Charge control mode (set at compilation step according to hardware).} {\textbf{0b0} : Charge controlled by the MCU. \\ \textbf{0b1} : Charge controlled by hardware.}
 }
 {Flags register 1}
 {BCM-FR1}
@@ -1955,28 +1955,28 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 0}
 
 \rmt
-{\rmu{8}{|c} & \rmf{8}{|c|}{CHEN\_TOGGLE\_PERIOD}}
-{\rmf{16}{|c|}{CHEN\_THRESHOLD}}
+{\rmu{8}{|c} & \rmf{8}{|c|}{CHARGE\_TOGGLE\_PERIOD}}
+{\rmf{16}{|c|}{CHARGE\_SOURCE\_VOLTAGE\_TH}}
 
 \rft {
     \rfu {31$\,-\,$24} {8} {0x00}
-    \rff {23$\,-\,$16} {8} {CHEN\_TOGGLE\_PERIOD} {$ - $} {Charge toggle period.} {\reflink{Table}{time-representation}}
-    \rff {15$\,-\,$0} {16} {CHEN\_THRESHOLD} {$ - $} {Voltage threshold to set \texttt{CHEN} bit.} {\reflink{Table}{voltage-representation}}
+    \rff {23$\,-\,$16} {8} {CHARGE\_TOGGLE\_PERIOD} {$ - $} {Charge toggle period.} {\reflink{Table}{time-representation}}
+    \rff {15$\,-\,$0} {16} {CHARGE\_SOURCE\_VOLTAGE\_TH} {$ - $} {Minimum source voltage required to set the \texttt{CHEN} bit.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 0}
 {BCM-CFGR0}
 
-\textbf{\underline{Note:}} this register is only used when \texttt{CHMD = 0b1} and \texttt{CEFH = 0b0}.
+\textbf{\underline{Note:}} this register is only used when \texttt{CHMD = 0b1} and \texttt{CCFH = 0b0}.
 
 \paragraph{Configuration register 1}
 
 \rmt
-{\rmf{16}{|c|}{LVF\_HIGH\_THRESHOLD}}
-{\rmf{16}{|c|}{LVF\_LOW\_THRESHOLD}}
+{\rmf{16}{|c|}{LVF\_STORAGE\_VOLTAGE\_THH}}
+{\rmf{16}{|c|}{LVF\_STORAGE\_VOLTAGE\_THL}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {LVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {LVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the LVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {LVF\_STORAGE\_VOLTAGE\_THH} {$ - $} {High storage voltage threshold of the LVF hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {LVF\_STORAGE\_VOLTAGE\_THL} {$ - $} {Low storage voltage threshold of the LVF hysteresis.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 1}
 {BCM-CFGR1}
@@ -1986,12 +1986,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Configuration register 2}
 
 \rmt
-{\rmf{16}{|c|}{CVF\_HIGH\_THRESHOLD}}
-{\rmf{16}{|c|}{CVF\_LOW\_THRESHOLD}}
+{\rmf{16}{|c|}{CVF\_STORAGE\_VOLTAGE\_THH}}
+{\rmf{16}{|c|}{CVF\_STORAGE\_VOLTAGE\_THL}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {CVF\_HIGH\_THRESHOLD} {$ - $} {High threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {CVF\_LOW\_THRESHOLD} {$ - $} {Low threshold of the CVF voltage hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {CVF\_STORAGE\_VOLTAGE\_THH} {$ - $} {High storage voltage threshold of the CVF hysteresis.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {CVF\_STORAGE\_VOLTAGE\_THL} {$ - $} {Low storage voltage threshold of the CVF hysteresis.} {\reflink{Table}{voltage-representation}}
 }
 {Configuration register 2}
 {BCM-CFGR2}
@@ -2002,16 +2002,16 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{6}{|c} & \rmf{1}{|c}{CVF} & \rmf{1}{|c}{LVF} &  \rmf{2}{|c}{CHRGST1} & \rmf{2}{|c}{CHRGST0} & \rmf{2}{|c}{CHENST} & \rmf{2}{|c|}{BKENST}}
+{\rmu{6}{|c} & \rmf{1}{|c}{CVF} & \rmf{1}{|c}{LVF} &  \rmf{2}{|c}{CHST1} & \rmf{2}{|c}{CHST0} & \rmf{2}{|c}{CHCS} & \rmf{2}{|c|}{BKCS}}
 
 \rft {
     \rfu {31$\,-\,$10} {22} {0b0[22]}
     \rff {9} {1} {CVF} {0b0} {Critical voltage detector flag.} {\textbf{0b0} : battery voltage is above the critical threshold. \\ \textbf{0b1} : battery voltage is under the critical threshold.}
     \rff {8} {1} {LVF} {0b0} {Low voltage detector flag.} {\textbf{0b0} : battery voltage is above the low threshold. \\ \textbf{0b1} : battery voltage is under the low threshold.}
-    \rff {7$\,-\,$6} {2} {CHRGST1} {0b11} {Battery charging status 1.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
-    \rff {5$\,-\,$4} {2} {CHRGST0} {0b11} {Battery charging status 0.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
-    \rff {3$\,-\,$2} {2} {CHENST} {0b11} {Battery charging enable status.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
-    \rff {1$\,-\,$0} {2} {BKENST} {0b11} {Backup output state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : backup output disabled. \\ \textbf{0b01} : backup output enabled.}
+    \rff {7$\,-\,$6} {2} {CHST1} {0b11} {Battery charging status 1.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
+    \rff {5$\,-\,$4} {2} {CHST0} {0b11} {Battery charging status 0.} {\reflink{Table}{bit-representation} \\ See \reflink{table}{bcm-chrgst} for bit meaning.}
+    \rff {3$\,-\,$2} {2} {CHCS} {0b11} {Battery charging control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : charge disabled. \\ \textbf{0b01} : charge enabled.}
+    \rff {1$\,-\,$0} {2} {BKCS} {0b11} {Backup output control state.} {\reflink{Table}{bit-representation} \\ \textbf{0b00} : backup output disabled. \\ \textbf{0b01} : backup output enabled.}
 }
 {Status register 1}
 {BCM-SR1}
@@ -2021,8 +2021,8 @@ Root bases are defined in each embedded software project:
 \begin{table}[h]
     \centering
     \begin{tabular}{|p{15mm}|p{15mm}|p{60mm}|}
-        \tl\cellcolor{LightGray}\centering\texttt{CHRGST1} &
-        \cellcolor{LightGray}\centering\texttt{CHRGST0} & \cellcolor{LightGray}\centering\textbf{Charge status} \tabularnewline
+        \tl\cellcolor{LightGray}\centering\texttt{CHST1} &
+        \cellcolor{LightGray}\centering\texttt{CHST0} & \cellcolor{LightGray}\centering\textbf{Charge status} \tabularnewline
         \tl\centering\textbf{0b0} & \centering\textbf{0b0} & \centering Not charging or terminated \tabularnewline
         \tl\centering\textbf{0b0} & \centering\textbf{0b1} & \centering Constant current charging (CC) \tabularnewline
         \tl\centering\textbf{0b1} & \centering\textbf{0b1} & \centering Constant voltage charging (CV) \tabularnewline
@@ -2055,12 +2055,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 1}
 
 \rmt
-{\rmf{16}{|c|}{VSTR[15:0]}}
-{\rmf{16}{|c|}{VSRC[15:0]}}
+{\rmf{16}{|c|}{STORAGE\_VOLTAGE[15:0]}}
+{\rmf{16}{|c|}{SOURCE\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {VSTR} {0xFFFF} {Battery voltage.} {\reflink{Table}{voltage-representation}}
-    \rff {15$\,-\,$0} {16} {VSRC} {0xFFFF} {Source voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {STORAGE\_VOLTAGE} {0xFFFF} {Battery voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {15$\,-\,$0} {16} {SOURCE\_VOLTAGE} {0xFFFF} {Input source voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 1}
 {BCM-ADR1}
@@ -2068,12 +2068,12 @@ Root bases are defined in each embedded software project:
 \paragraph{Analog data register 2}
 
 \rmt
-{\rmf{16}{|c|}{ISTR[15:0]}}
-{\rmf{16}{|c|}{VBKP[15:0]}}
+{\rmf{16}{|c|}{CHARGE\_CURRENT[15:0]}}
+{\rmf{16}{|c|}{BACKUP\_VOLTAGE[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {ISTR} {0xFFFF} {Battery charge current.} {\reflink{Table}{current-representation}}
-    \rff {15$\,-\,$0} {16} {VBKP} {0xFFFF} {Backup voltage.} {\reflink{Table}{voltage-representation}}
+    \rff {31$\,-\,$16} {16} {CHARGE\_CURRENT} {0xFFFF} {Battery charge current.} {\reflink{Table}{current-representation}}
+    \rff {15$\,-\,$0} {16} {BACKUP\_VOLTAGE} {0xFFFF} {Backup output voltage.} {\reflink{Table}{voltage-representation}}
 }
 {Analog data register 2}
 {BCM-ADR2}
@@ -2094,18 +2094,18 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmf{2}{|c}{R8STST} & \rmf{2}{|c}{R7STST} & \rmf{2}{|c}{R6STST} & \rmf{2}{|c}{R5STST} & \rmf{2}{|c}{R4STST} & \rmf{2}{|c}{R3STST} & \rmf{2}{|c}{R2STST} & \rmf{2}{|c|}{R1STST}}
+{\rmf{2}{|c}{R8ST} & \rmf{2}{|c}{R7ST} & \rmf{2}{|c}{R6ST} & \rmf{2}{|c}{R5ST} & \rmf{2}{|c}{R4ST} & \rmf{2}{|c}{R3ST} & \rmf{2}{|c}{R2ST} & \rmf{2}{|c|}{R1ST}}
 
 \rft {
     \rfu {31$\,-\,$16} {16} {0x0000}
-    \hline\cellcolor{PeachPuff}\centering\textbf{15$\,-\,$14} & \centering 2 & \centering\texttt{R8STST} & \centering 0b11 & \centering Relay 8 state. & \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{13$\,-\,$12} & \centering 2 & \centering\texttt{R7STST} & \centering 0b11 & \centering Relay 7 status. & \centering \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{11$\,-\,$10} & \centering 2 & \centering\texttt{R6STST} & \centering 0b11 & \centering Relay 6 status. & \centering \reflink{Table}{bit-representation} \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{9$\,-\,$8} & \centering 2 & \centering\texttt{R5STST} & \centering 0b11 & \centering Relay 5 status. & \centering \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{7$\,-\,$6} & \centering 2 & \centering\texttt{R4STST} & \centering 0b11 & \centering Relay 4 status. & \centering \textbf{0b0} : NC path closed \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{5$\,-\,$4} & \centering 2 & \centering\texttt{R3STST} & \centering 0b11 & \centering Relay 3 status. & \centering \textbf{0b1} : NO path closed \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{3$\,-\,$2} & \centering 2 & \centering\texttt{R2STST} & \centering 0b11 & \centering Relay 2 status. & \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{1$\,-\,$0} & \centering 2 & \centering\texttt{R1STST} & \centering 0b11 & \centering Relay 1 status. & \tabularnewline
+    \hline\cellcolor{PeachPuff}\centering\textbf{15$\,-\,$14} & \centering 2 & \centering\texttt{R8ST} & \centering 0b11 & \centering Relay 8 status. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{13$\,-\,$12} & \centering 2 & \centering\texttt{R7ST} & \centering 0b11 & \centering Relay 7 status. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{11$\,-\,$10} & \centering 2 & \centering\texttt{R6ST} & \centering 0b11 & \centering Relay 6 status. & \centering \reflink{Table}{bit-representation} \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{9$\,-\,$8} & \centering 2 & \centering\texttt{R5ST} & \centering 0b11 & \centering Relay 5 status. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{7$\,-\,$6} & \centering 2 & \centering\texttt{R4ST} & \centering 0b11 & \centering Relay 4 status. & \centering \textbf{0b0} : NC path closed \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{5$\,-\,$4} & \centering 2 & \centering\texttt{R3ST} & \centering 0b11 & \centering Relay 3 status. & \centering \textbf{0b1} : NO path closed \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{3$\,-\,$2} & \centering 2 & \centering\texttt{R2ST} & \centering 0b11 & \centering Relay 2 status. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{1$\,-\,$0} & \centering 2 & \centering\texttt{R1ST} & \centering 0b11 & \centering Relay 1 status. & \tabularnewline
 }
 {Status register}
 {R4S8CR-SR}
@@ -2116,18 +2116,18 @@ Root bases are defined in each embedded software project:
 
 \rmt
 {\rmu{16}{|c|}}
-{\rmu{8}{|c} & \rmf{1}{|c}{R8ST} & \rmf{1}{|c}{R7ST} & \rmf{1}{|c}{R6ST} & \rmf{1}{|c}{R5ST} & \rmf{1}{|c}{R4ST} & \rmf{1}{|c}{R3ST} & \rmf{1}{|c}{R2ST} & \rmf{1}{|c|}{R1ST}}
+{\rmu{8}{|c} & \rmf{1}{|c}{R8C} & \rmf{1}{|c}{R7C} & \rmf{1}{|c}{R6C} & \rmf{1}{|c}{R5C} & \rmf{1}{|c}{R4C} & \rmf{1}{|c}{R3C} & \rmf{1}{|c}{R2C} & \rmf{1}{|c|}{R1C}}
 
 \rft {
     \rfu {31$\,-\,$8} {24} {0x000000}
-    \hline\cellcolor{PeachPuff}\centering\textbf{7} & \centering 1 & \centering\texttt{R8ST} & \centering 0b0 & \centering Relay 8 state. & \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{6} & \centering 1 & \centering\texttt{R7ST} & \centering 0b0 & \centering Relay 7 state. & \centering \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{5} & \centering 1 & \centering\texttt{R6ST} & \centering 0b0 & \centering Relay 6 state. & \centering \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{4} & \centering 1 & \centering\texttt{R5ST} & \centering 0b0 & \centering Relay 5 state. & \centering \textbf{0b0} : close NC path \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{3} & \centering 1 & \centering\texttt{R4ST} & \centering 0b0 & \centering Relay 4 state. & \centering \textbf{0b1} : close NO path \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{2} & \centering 1 & \centering\texttt{R3ST} & \centering 0b0 & \centering Relay 3 state. & \centering \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{1} & \centering 1 & \centering\texttt{R2ST} & \centering 0b0 & \centering Relay 2 state. & \tabularnewline
-    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{0} & \centering 1 & \centering\texttt{R1ST} & \centering 0b0 & \centering Relay 1 state. & \tabularnewline
+    \hline\cellcolor{PeachPuff}\centering\textbf{7} & \centering 1 & \centering\texttt{R8C} & \centering 0b0 & \centering Relay 8 control. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{6} & \centering 1 & \centering\texttt{R7C} & \centering 0b0 & \centering Relay 7 control. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{5} & \centering 1 & \centering\texttt{R6C} & \centering 0b0 & \centering Relay 6 control. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{4} & \centering 1 & \centering\texttt{R5C} & \centering 0b0 & \centering Relay 5 control. & \centering \textbf{0b0} : close NC path \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{3} & \centering 1 & \centering\texttt{R4C} & \centering 0b0 & \centering Relay 4 control. & \centering \textbf{0b1} : close NO path \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{2} & \centering 1 & \centering\texttt{R3C} & \centering 0b0 & \centering Relay 3 control. & \centering \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{1} & \centering 1 & \centering\texttt{R2C} & \centering 0b0 & \centering Relay 2 control. & \tabularnewline
+    \cline{1-5}\cellcolor{PeachPuff}\centering\textbf{0} & \centering 1 & \centering\texttt{R1C} & \centering 0b0 & \centering Relay 1 control. & \tabularnewline
 }
 {Control register}
 {R4S8CR-CR}
