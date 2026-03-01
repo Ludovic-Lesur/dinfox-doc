@@ -397,7 +397,7 @@ Root bases are defined in each embedded software project:
 
 \rft {
     \rfu {31$\,-\,$10} {22} {0b0[22]}
-    \rff {9} {1} {ESF} {0b0} {MCU error stack flag.} {\textbf{0b0} : error stack is empty. \\ \textbf{0b1} : error stack is not empty.}
+    \rff {9} {1} {ESF} {$ - $} {MCU error stack flag.} {\textbf{0b0} : error stack is empty. \\ \textbf{0b1} : error stack is not empty.}
     \rff {8} {1} {BF} {0b1} {MCU boot flag.} {\textbf{0b0} : MCU did not reboot since last flag clearing. \\ \textbf{0b1} : MCU rebooted since last flag clearing.}
     \rff {7} {1} {LPWR} {$ - $} {Low power reset flag.} {\textbf{0b0} : no LPWR reset occurred. \\ \textbf{0b1} : LPWR reset occurred.}
     \rff {6} {1} {WWDG} {$ - $} {Window watchdog reset flag.} {\textbf{0b0} : no WWDG reset occurred. \\ \textbf{0b1} : WWDG reset occurred.}
@@ -1063,8 +1063,8 @@ Root bases are defined in each embedded software project:
 {\rmf{16}{|c|}{TIME\_TIMEOUT[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$16} {16} {GEOLOC\_TIMEOUT} {0x00B4} {Geo-location fix timeout.} {\textbf{Raw} value in $ s $.}
-    \rff {15$\,-\,$0} {16} {TIME\_TIMEOUT} {0x0078} {Time fix timeout.} {\textbf{Raw} value in $ s $.}
+    \rff {31$\,-\,$16} {16} {GEOLOC\_TIMEOUT} {$ - $} {Geo-location fix timeout.} {\textbf{Raw} value in $ s $.}
+    \rff {15$\,-\,$0} {16} {TIME\_TIMEOUT} {$ - $} {Time fix timeout.} {\textbf{Raw} value in $ s $.}
 }
 {Configuration register 0}
 {GPSM-CFGR0}
@@ -1076,7 +1076,7 @@ Root bases are defined in each embedded software project:
 {\rmf{16}{|c|}{TP\_FREQUENCY[15:0]}}
 
 \rft {
-    \rff {31$\,-\,$0} {32} {TP\_FREQUENCY} {0x00989680} {Timepulse signal frequency.} {\textbf{Raw} value in $ Hz $. \\ (1 to 10000000)}
+    \rff {31$\,-\,$0} {32} {TP\_FREQUENCY} {$ - $} {Timepulse signal frequency.} {\textbf{Raw} value in $ Hz $. \\ (1 to 10000000)}
 }
 {Configuration register 1}
 {GPSM-CFGR1}
@@ -1089,7 +1089,7 @@ Root bases are defined in each embedded software project:
 
 \rft {
     \rfu {31$\,-\,$7} {25} {0b0[25]}
-    \rff {6$\,-\,$0} {7} {TP\_DUTY\_CYCLE} {0x32} {Timepulse signal duty cycle.} {\textbf{Raw} value in \% \\ (0 to 100)}
+    \rff {6$\,-\,$0} {7} {TP\_DUTY\_CYCLE} {$ - $} {Timepulse signal duty cycle.} {\textbf{Raw} value in \% \\ (0 to 100)}
 }
 {Configuration register 2}
 {GPSM-CFGR2}
